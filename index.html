@@ -2,280 +2,359 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Troca Já — Troque o que você tem pelo que você precisa</title>
+<meta name="description" content="Plataforma brasileira de troca de produtos entre pessoas. Cadastre o que está parado, encontre o que precisa e proponha trocas diretas.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%2300843D'/%3E%3Cpath d='M13 16.5C13 14 15 12 17.5 12H26M23 8.5L27 12L23 15.5M27 23.5C27 26 25 28 22.5 28H14M17 20.5L13 24L17 27.5' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+/* ============================================================
+   TROCA JÁ — design system
+   Estrutura de tokens inspirada em marketplaces consumer
+   (canvas branco, uma cor de marca, tipografia contida,
+   uma única camada de sombra). Marca: verde + preto.
+   ============================================================ */
 :root{
-  --blue:#2563EB;
-  --teal:#14B8A6;
-  --bg:#F8FAFC;
-  --white:#FFFFFF;
-  --text:#0F172A;
-  --gray:#64748B;
-  --success:#22C55E;
-  --grad: linear-gradient(120deg, var(--blue), var(--teal));
-  --radius: 20px;
-  --radius-sm: 12px;
-  --shadow: 0 8px 24px -8px rgba(15,23,42,.12);
-  --shadow-lg: 0 20px 40px -12px rgba(15,23,42,.18);
+  /* brand */
+  --green:#00843D;
+  --green-press:#006B31;
+  --green-tint:#E6F4EC;
+  --green-disabled:#A8D9BE;
+  /* ink scale */
+  --ink:#111111;
+  --body:#3F3F3F;
+  --muted:#6A6A6A;
+  --muted-soft:#929292;
+  /* surfaces */
+  --canvas:#FFFFFF;
+  --soft:#F7F7F7;
+  --strong:#F2F2F2;
+  /* lines */
+  --hairline:#DDDDDD;
+  --hairline-soft:#EBEBEB;
+  --border-strong:#C1C1C1;
+  /* semantic */
+  --error:#C13515;
+  --warn-bg:#FFF8E6;
+  --warn-ink:#8A6D1D;
+  /* shape */
+  --r-xs:4px; --r-sm:8px; --r-md:14px; --r-lg:20px; --r-xl:32px; --r-full:9999px;
+  /* single shadow tier */
+  --shadow: rgba(0,0,0,0.02) 0 0 0 1px, rgba(0,0,0,0.04) 0 2px 6px 0, rgba(0,0,0,0.1) 0 4px 8px 0;
+  --scrim: rgba(0,0,0,.5);
+  --font:'Inter',-apple-system,system-ui,Roboto,'Helvetica Neue',sans-serif;
 }
-*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
-body{
-  font-family:'Inter',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  -webkit-font-smoothing:antialiased;
-}
-h1,h2,h3,h4,.font-display{font-family:'Sora',sans-serif;}
-a{text-decoration:none;color:inherit;}
-button{font-family:inherit; cursor:pointer; border:none; background:none;}
+body{font-family:var(--font);background:var(--canvas);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:16px;line-height:1.5;}
+h1,h2,h3,h4{margin:0;font-weight:600;}
+a{text-decoration:none;color:inherit;cursor:pointer;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font-size:inherit;}
 input,textarea,select{font-family:inherit;}
-img{max-width:100%; display:block;}
-::selection{background:var(--teal); color:white;}
-
-#app-shell{max-width:480px; margin:0 auto; min-height:100vh; background:var(--bg); position:relative; box-shadow: var(--shadow-lg); overflow-x:hidden;}
-@media(min-width:900px){
-  #app-shell{max-width:1180px;}
-}
-
-/* ---------- Scrollbar ---------- */
+img{max-width:100%;display:block;}
+::selection{background:var(--green-tint);color:var(--ink);}
 ::-webkit-scrollbar{width:6px;height:6px;}
-::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:10px;}
+::-webkit-scrollbar-thumb{background:var(--hairline);border-radius:10px;}
 
-/* ---------- Utility ---------- */
-.px{padding-left:20px;padding-right:20px;}
-.container-wide{max-width:1180px;margin:0 auto;padding:0 24px;}
-.btn{
-  display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  padding:14px 22px; border-radius:14px; font-weight:600; font-size:15px;
-  transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
-  white-space:nowrap;
-}
-.btn:active{transform:scale(.97);}
-.btn-primary{background:var(--grad); color:#fff; box-shadow:0 10px 20px -8px rgba(37,99,235,.5);}
-.btn-primary:hover{box-shadow:0 14px 26px -8px rgba(37,99,235,.6);}
-.btn-outline{background:#fff; color:var(--blue); border:1.5px solid #E2E8F0;}
-.btn-outline:hover{border-color:var(--blue);}
-.btn-ghost{background:#EEF2FF; color:var(--blue);}
-.btn-success{background:var(--success); color:#fff;}
+#app{min-height:100vh;display:flex;flex-direction:column;}
+.page{flex:1;width:100%;max-width:1280px;margin:0 auto;padding:0 24px;}
+@media(max-width:743px){.page{padding:0 16px;}}
+.fade-in{animation:fadeIn .3s ease both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ---------- Typography ---------- */
+.display-xl{font-size:28px;font-weight:700;line-height:1.35;letter-spacing:-.01em;}
+.display-lg{font-size:22px;font-weight:600;line-height:1.2;letter-spacing:-.02em;}
+.display-sm{font-size:20px;font-weight:600;line-height:1.2;}
+.title-md{font-size:16px;font-weight:600;line-height:1.25;}
+.body-md{font-size:16px;font-weight:400;line-height:1.5;color:var(--body);}
+.body-sm{font-size:14px;font-weight:400;line-height:1.43;color:var(--muted);}
+.caption{font-size:14px;font-weight:500;line-height:1.29;}
+.caption-sm{font-size:13px;color:var(--muted);}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:500;line-height:1.25;padding:13px 24px;height:48px;border-radius:var(--r-sm);transition:background .12s ease,border-color .12s ease,transform .08s ease;white-space:nowrap;}
+.btn:active{transform:scale(.985);}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-press);}
+.btn-primary:disabled{background:var(--green-disabled);cursor:not-allowed;transform:none;}
+.btn-dark{background:var(--ink);color:#fff;}
+.btn-dark:hover{background:#000;}
+.btn-secondary{background:var(--canvas);color:var(--ink);border:1px solid var(--ink);}
+.btn-secondary:hover{background:var(--soft);}
+.btn-outline{background:var(--canvas);color:var(--ink);border:1px solid var(--hairline);}
+.btn-outline:hover{border-color:var(--ink);}
+.btn-text{background:transparent;color:var(--ink);text-decoration:underline;padding:8px 4px;height:auto;font-weight:500;}
+.btn-pill{border-radius:var(--r-full);padding:10px 20px;height:auto;font-size:14px;}
+.btn-sm{height:36px;padding:7px 14px;font-size:14px;border-radius:var(--r-sm);}
 .btn-block{width:100%;}
-.btn-sm{padding:9px 14px;font-size:13px;border-radius:10px;}
-.card{background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid #EEF2F6;}
-.tag{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; padding:5px 10px; border-radius:100px; background:#EEF2FF; color:var(--blue);}
-.badge-green{background:#DCFCE7;color:#15803D;}
-.badge-yellow{background:#FEF9C3;color:#A16207;}
-.badge-red{background:#FEE2E2;color:#B91C1C;}
-.input{
-  width:100%; padding:14px 16px; border-radius:14px; border:1.5px solid #E2E8F0; background:#fff;
-  font-size:15px; color:var(--text); transition:border-color .15s;
-}
-.input:focus{outline:none; border-color:var(--blue);}
-.label{font-size:13px; font-weight:600; color:var(--gray); margin-bottom:6px; display:block;}
+.btn-danger-text{color:var(--error);background:transparent;text-decoration:underline;padding:8px 4px;height:auto;font-size:14px;}
+.btn .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.icon-circle{width:32px;height:32px;border-radius:var(--r-full);background:var(--strong);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .12s;}
+.icon-circle:hover{background:var(--hairline-soft);}
+.icon-circle.lg{width:40px;height:40px;background:var(--canvas);border:1px solid var(--hairline);}
+.icon-circle svg{width:16px;height:16px;}
+.icon-circle.lg svg{width:18px;height:18px;}
+
+/* ---------- Top nav ---------- */
+.topnav{height:80px;border-bottom:1px solid var(--hairline-soft);background:var(--canvas);position:sticky;top:0;z-index:50;}
+.topnav-inner{max-width:1280px;margin:0 auto;height:100%;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+@media(max-width:743px){.topnav{height:64px;}.topnav-inner{padding:0 16px;}}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex-shrink:0;}
+.brand svg{flex-shrink:0;}
+.nav-links{display:none;gap:8px;}
+@media(min-width:900px){.nav-links{display:flex;}}
+.nav-links a{font-size:15px;font-weight:500;color:var(--muted);padding:10px 14px;border-radius:var(--r-full);transition:.12s;}
+.nav-links a:hover{background:var(--soft);color:var(--ink);}
+.nav-right{display:flex;align-items:center;gap:10px;}
+
+/* ---------- Search pill ---------- */
+.search-pill{display:flex;align-items:center;background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--r-full);box-shadow:var(--shadow);padding:6px 6px 6px 22px;max-width:560px;width:100%;transition:box-shadow .15s;}
+.search-pill:focus-within{border-color:var(--border-strong);}
+.search-pill input{border:none;outline:none;flex:1;font-size:14px;font-weight:500;background:transparent;color:var(--ink);min-width:0;}
+.search-pill input::placeholder{color:var(--muted);font-weight:400;}
+.search-orb{width:40px;height:40px;border-radius:var(--r-full);background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .12s;}
+.search-orb:hover{background:var(--green-press);}
+.search-orb svg{width:16px;height:16px;}
+
+/* ---------- Category strip ---------- */
+.cat-strip{display:flex;gap:6px;overflow-x:auto;padding:14px 0 12px;scrollbar-width:none;}
+.cat-strip::-webkit-scrollbar{display:none;}
+.cat-tab{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;padding:8px 14px 10px;font-size:12.5px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:.12s;border-radius:var(--r-sm) var(--r-sm) 0 0;}
+.cat-tab .ci{font-size:22px;filter:grayscale(.4);opacity:.75;transition:.12s;}
+.cat-tab:hover{color:var(--ink);background:var(--soft);}
+.cat-tab:hover .ci{filter:none;opacity:1;}
+.cat-tab.active{color:var(--ink);border-bottom-color:var(--ink);font-weight:600;}
+.cat-tab.active .ci{filter:none;opacity:1;}
+
+/* ---------- Product grid & cards ---------- */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px 16px;padding:8px 0 40px;}
+@media(min-width:744px){.grid{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:1128px){.grid{grid-template-columns:repeat(4,1fr);}}
+.pcard{cursor:pointer;position:relative;}
+.pcard .photo{position:relative;aspect-ratio:1/1;border-radius:var(--r-md);overflow:hidden;background:var(--strong);}
+.pcard .photo img{width:100%;height:100%;object-fit:cover;transition:transform .25s ease;}
+.pcard:hover .photo img{transform:scale(1.03);}
+.pcard .ph-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:44px;background:var(--soft);}
+.pcard .fav-badge{position:absolute;top:12px;left:12px;background:var(--canvas);border-radius:var(--r-full);padding:4px 10px;font-size:11px;font-weight:600;box-shadow:var(--shadow);}
+.pcard .heart{position:absolute;top:10px;right:10px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;}
+.pcard .heart svg{width:22px;height:22px;fill:rgba(0,0,0,.45);stroke:#fff;stroke-width:2;transition:.15s;}
+.pcard .heart:hover svg{transform:scale(1.1);}
+.pcard .heart.saved svg{fill:var(--green);stroke:var(--green);}
+.pcard .meta{padding:10px 2px 0;}
+.pcard .meta .name{font-size:15px;font-weight:600;color:var(--ink);line-height:1.3;display:flex;justify-content:space-between;gap:8px;}
+.pcard .meta .sub{font-size:14px;color:var(--muted);margin-top:2px;}
+.pcard .meta .want{font-size:14px;color:var(--ink);margin-top:4px;font-weight:500;}
+.pcard .rating{display:inline-flex;align-items:center;gap:3px;font-size:14px;font-weight:400;color:var(--ink);flex-shrink:0;}
+.pcard .rating svg{width:12px;height:12px;fill:var(--ink);}
+
+/* ---------- Section ---------- */
+.section{padding:32px 0 8px;}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px;}
+.hairline-top{border-top:1px solid var(--hairline-soft);}
+
+/* ---------- Hero ---------- */
+.hero{padding:56px 0 28px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:20px;}
+.hero h1{font-size:clamp(28px,4.5vw,44px);font-weight:800;letter-spacing:-.03em;line-height:1.12;max-width:640px;}
+.hero h1 em{font-style:normal;color:var(--green);}
+.hero p{font-size:17px;color:var(--muted);max-width:480px;margin:0;}
+
+/* ---------- Forms ---------- */
+.form-wrap{max-width:440px;margin:0 auto;padding:32px 0 72px;}
 .field{margin-bottom:16px;}
-.section-title{font-size:22px; font-weight:700; font-family:'Sora',sans-serif; margin:0 0 4px;}
-.section-sub{color:var(--gray); font-size:14px; margin:0 0 18px;}
-.fade-in{animation:fadeIn .35s ease both;}
-@keyframes fadeIn{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)}}
-.scale-pop{animation:pop .4s cubic-bezier(.34,1.56,.64,1) both;}
-@keyframes pop{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.label{display:block;font-size:14px;font-weight:500;color:var(--body);margin-bottom:6px;}
+.input{width:100%;height:56px;padding:14px 12px;border:1px solid var(--hairline);border-radius:var(--r-sm);font-size:16px;color:var(--ink);background:var(--canvas);transition:border .12s,box-shadow .12s;outline:none;}
+.input:focus{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);}
+.input.error{border-color:var(--error);box-shadow:inset 0 0 0 1px var(--error);}
+textarea.input{height:auto;min-height:96px;resize:vertical;line-height:1.5;}
+select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23111' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;}
+.field-error{color:var(--error);font-size:13px;margin-top:5px;display:none;}
+.field.has-error .field-error{display:block;}
+.form-note{background:var(--soft);border-radius:var(--r-sm);padding:12px 14px;font-size:13px;color:var(--muted);line-height:1.45;}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border:1px solid var(--hairline);border-radius:var(--r-full);font-size:14px;font-weight:500;color:var(--body);background:var(--canvas);transition:.12s;cursor:pointer;}
+.chip:hover{border-color:var(--ink);}
+.chip.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:500;padding:6px 12px;border-radius:var(--r-full);background:var(--soft);color:var(--body);}
+.tag.green{background:var(--green-tint);color:var(--green-press);font-weight:600;}
+.badge-status{font-size:12px;font-weight:600;padding:4px 10px;border-radius:var(--r-full);}
+.badge-status.ativo{background:var(--green-tint);color:var(--green-press);}
+.badge-status.pausado{background:var(--soft);color:var(--muted);}
+.badge-status.em_negociacao{background:var(--warn-bg);color:var(--warn-ink);}
+.badge-status.trocado{background:var(--ink);color:#fff;}
 
-/* ---------- Top bars ---------- */
-.topbar{
-  position:sticky; top:0; z-index:30; background:rgba(248,250,252,.85); backdrop-filter:blur(10px);
-  display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid #EDF1F5;
-}
-.logo{display:flex; align-items:center; gap:8px; font-family:'Sora',sans-serif; font-weight:800; font-size:19px;}
-.logo-mark{width:34px;height:34px;flex-shrink:0;}
+/* ---------- Photo uploader ---------- */
+.photo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.photo-add{aspect-ratio:1;border:1.5px dashed var(--border-strong);border-radius:var(--r-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;color:var(--muted);cursor:pointer;background:var(--soft);transition:.12s;}
+.photo-add:hover{border-color:var(--ink);color:var(--ink);}
+.photo-prev{position:relative;aspect-ratio:1;border-radius:var(--r-sm);overflow:hidden;background:var(--strong);}
+.photo-prev img{width:100%;height:100%;object-fit:cover;}
+.photo-prev .rm{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;line-height:1;}
 
-/* ---------- Landing ---------- */
-.landing-nav{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;max-width:1180px;margin:0 auto;}
-.landing-nav .links{display:none;gap:28px;font-weight:600;font-size:14.5px;color:var(--gray);}
-@media(min-width:900px){.landing-nav .links{display:flex;}}
-.hero{padding:36px 24px 10px; max-width:1180px; margin:0 auto;}
-@media(min-width:900px){.hero{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; padding:56px 24px 20px;}}
-.hero h1{font-size:clamp(30px,6vw,50px); line-height:1.08; font-weight:800; margin:0 0 16px; letter-spacing:-0.02em;}
-.hero h1 .accent{background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent;}
-.hero p{color:var(--gray); font-size:16.5px; line-height:1.6; margin:0 0 26px; max-width:480px;}
-.hero-actions{display:flex; gap:12px; flex-wrap:wrap;}
-.hero-illustration{position:relative; margin-top:32px;}
-@media(min-width:900px){.hero-illustration{margin-top:0;}}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #E2E8F0;border-radius:100px;padding:7px 14px;font-size:12.5px;font-weight:700;color:var(--blue);margin-bottom:18px;box-shadow:var(--shadow);}
-
-.steps-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-top:20px;}
-@media(min-width:700px){.steps-grid{grid-template-columns:repeat(4,1fr);}}
-.step-card{background:#fff;border-radius:var(--radius);padding:22px 18px;box-shadow:var(--shadow);position:relative;border:1px solid #EEF2F6;}
-.step-num{font-family:'Sora',sans-serif;font-weight:800;font-size:26px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:10px;}
-.step-card h4{margin:0 0 6px;font-size:15.5px;}
-.step-card p{margin:0;font-size:13.5px;color:var(--gray);line-height:1.5;}
-
-.cat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:18px;}
-@media(min-width:700px){.cat-grid{grid-template-columns:repeat(6,1fr);}}
-.cat-chip{background:#fff;border-radius:16px;padding:18px 8px;text-align:center;box-shadow:var(--shadow);border:1px solid #EEF2F6;transition:transform .15s;}
-.cat-chip:hover{transform:translateY(-3px);}
-.cat-chip .ic{font-size:26px;margin-bottom:8px;}
-.cat-chip span{font-size:12.5px;font-weight:600;color:var(--text);}
-
-.landing-section{padding:44px 24px; max-width:1180px; margin:0 auto;}
-.footer{background:var(--text); color:#CBD5E1; padding:38px 24px; margin-top:20px;}
-.footer .container-wide{display:flex;flex-direction:column;gap:18px;}
-.footer .logo{color:#fff;}
-
-/* ---------- Bottom nav ---------- */
-.bottom-nav{
-  position:sticky; bottom:0; left:0; right:0; background:#fff; border-top:1px solid #EDF1F5;
-  display:flex; justify-content:space-around; align-items:center; padding:8px 6px calc(8px + env(safe-area-inset-bottom));
-  z-index:40;
-}
-.nav-item{display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10.5px; font-weight:600; color:var(--gray); padding:6px 10px; border-radius:12px; transition:.15s;}
-.nav-item.active{color:var(--blue);}
-.nav-item .ic{font-size:20px;}
-.nav-item.fab{background:var(--grad); color:#fff; width:44px;height:44px;border-radius:50%;justify-content:center;margin-top:-22px;box-shadow:0 8px 18px -4px rgba(37,99,235,.55);font-size:22px;}
-.nav-item.fab span.lbl{display:none;}
-
-/* ---------- Product cards ---------- */
-.product-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:4px 20px 20px;}
-@media(min-width:700px){.product-grid{grid-template-columns:repeat(3,1fr);padding-left:24px;padding-right:24px;}}
-@media(min-width:1000px){.product-grid{grid-template-columns:repeat(4,1fr);}}
-.pcard{background:#fff;border-radius:18px;overflow:hidden;box-shadow:var(--shadow);border:1px solid #EEF2F6;cursor:pointer;transition:transform .15s;}
-.pcard:hover{transform:translateY(-3px);}
-.pcard .img-wrap{position:relative;aspect-ratio:4/3;background:#E2E8F0;overflow:hidden;}
-.pcard .img-wrap img{width:100%;height:100%;object-fit:cover;}
-.pcard .heart{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.92);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 4px 10px rgba(0,0,0,.12);}
-.pcard .body{padding:11px 12px 13px;}
-.pcard .cat{font-size:10.5px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.03em;}
-.pcard .name{font-size:14px;font-weight:700;margin:3px 0 5px;line-height:1.25;}
-.pcard .cond{font-size:11.5px;color:var(--gray);margin-bottom:6px;}
-.pcard .loc{font-size:11.5px;color:var(--gray);display:flex;align-items:center;gap:3px;margin-bottom:8px;}
-.pcard .owner{display:flex;align-items:center;gap:6px;margin-bottom:9px;}
-.pcard .owner img{width:20px;height:20px;border-radius:50%;object-fit:cover;}
-.pcard .owner span{font-size:11.5px;color:var(--gray);font-weight:500;}
-
-/* ---------- Search / filters ---------- */
-.search-wrap{padding:6px 20px 12px;}
-.search-box{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;padding:12px 16px;box-shadow:var(--shadow);}
-.search-box input{border:none;flex:1;font-size:14.5px;background:transparent;}
-.search-box input:focus{outline:none;}
-.filter-row{display:flex; gap:8px; overflow-x:auto; padding:12px 20px 4px; scrollbar-width:none;}
-.filter-row::-webkit-scrollbar{display:none;}
-.filter-chip{flex-shrink:0; padding:9px 15px; border-radius:100px; background:#fff; border:1.5px solid #E2E8F0; font-size:13px; font-weight:600; color:var(--gray); white-space:nowrap;}
-.filter-chip.active{background:var(--grad); color:#fff; border-color:transparent;}
-
-/* ---------- Auth screens ---------- */
-.auth-wrap{max-width:420px;margin:0 auto;padding:20px 24px 60px;}
-.auth-illustration{display:flex;justify-content:center;margin:10px 0 24px;}
-.divider{display:flex;align-items:center;gap:12px;color:var(--gray);font-size:12.5px;margin:18px 0;}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:#E2E8F0;}
-.checkbox-row{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--gray);line-height:1.5;}
-.checkbox-row input{margin-top:3px;}
-
-/* ---------- Product detail ---------- */
-.gallery{position:relative;aspect-ratio:1/1;max-height:420px;background:#E2E8F0;}
+/* ---------- Detail ---------- */
+.detail{display:grid;grid-template-columns:1fr;gap:32px;padding:24px 0 80px;}
+@media(min-width:900px){.detail{grid-template-columns:1.6fr 1fr;align-items:start;}}
+.gallery{position:relative;border-radius:var(--r-md);overflow:hidden;aspect-ratio:4/3;background:var(--strong);cursor:pointer;}
 .gallery img{width:100%;height:100%;object-fit:cover;}
-.gallery-dots{position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:6px;}
-.gallery-dots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.6);}
-.gallery-dots span.on{background:#fff;width:18px;border-radius:4px;}
-.detail-body{padding:20px;}
-.owner-row{display:flex;align-items:center;gap:12px;padding:14px;background:#fff;border-radius:16px;border:1px solid #EEF2F6;margin:14px 0;}
-.owner-row img{width:46px;height:46px;border-radius:50%;object-fit:cover;}
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;}
-.info-grid .it{background:#fff;border:1px solid #EEF2F6;border-radius:14px;padding:12px 14px;}
-.info-grid .it .k{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px;}
-.info-grid .it .v{font-size:14px;font-weight:600;}
-.accept-box{background:linear-gradient(135deg,#EEF2FF,#ECFDF5);border-radius:16px;padding:16px;margin:16px 0;}
-.sticky-cta{position:sticky;bottom:0;background:#fff;border-top:1px solid #EDF1F5;padding:14px 20px;display:flex;gap:10px;}
+.gallery .dots{position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:5px;}
+.gallery .dots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55);transition:.15s;}
+.gallery .dots span.on{background:#fff;}
+.gallery .ph-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:72px;}
+.side-card{border:1px solid var(--hairline);border-radius:var(--r-md);padding:24px;box-shadow:var(--shadow);position:sticky;top:100px;background:var(--canvas);}
+.owner-row{display:flex;align-items:center;gap:12px;padding:16px 0;border-top:1px solid var(--hairline-soft);border-bottom:1px solid var(--hairline-soft);margin:20px 0;cursor:pointer;}
+.avatar{border-radius:50%;object-fit:cover;background:var(--strong);color:var(--ink);display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;overflow:hidden;}
+.info-list{display:flex;flex-direction:column;}
+.info-list .row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--hairline-soft);font-size:15px;}
+.info-list .row .k{color:var(--muted);}
+.info-list .row .v{font-weight:500;color:var(--ink);}
 
-/* ---------- Modal ---------- */
-.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;justify-content:center;z-index:100;}
-@media(min-width:700px){.modal-overlay{align-items:center;}}
-.modal-sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;padding:22px;}
-@media(min-width:700px){.modal-sheet{border-radius:24px;}}
-.modal-handle{width:40px;height:4px;background:#E2E8F0;border-radius:10px;margin:0 auto 16px;}
-.offer-option{display:flex;align-items:center;gap:12px;padding:12px;border:1.5px solid #E2E8F0;border-radius:14px;margin-bottom:10px;cursor:pointer;}
-.offer-option.selected{border-color:var(--blue);background:#EEF2FF;}
-.offer-option img{width:48px;height:48px;border-radius:10px;object-fit:cover;}
+/* ---------- Bottom nav (mobile app chrome) ---------- */
+.bottom-nav{position:sticky;bottom:0;background:var(--canvas);border-top:1px solid var(--hairline-soft);display:flex;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:40;}
+@media(min-width:900px){.bottom-nav{display:none;}}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;font-weight:500;color:var(--muted);padding:5px 12px;position:relative;}
+.bnav-item svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;}
+.bnav-item.active{color:var(--green);}
+.bnav-item .dot{position:absolute;top:2px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--green);border:2px solid #fff;}
 
-/* ---------- Match celebration ---------- */
-.match-overlay{position:fixed;inset:0;background:linear-gradient(160deg,#2563EB,#14B8A6);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:30px;}
-.match-arrows{font-size:56px;margin-bottom:6px;animation:spin-in .7s ease both;}
-@keyframes spin-in{from{transform:rotate(-90deg) scale(.4);opacity:0}to{transform:rotate(0) scale(1);opacity:1}}
-.match-title{font-family:'Sora',sans-serif;font-weight:800;font-size:32px;margin:10px 0 6px;}
-.match-pair{display:flex;align-items:center;gap:16px;margin:26px 0;}
-.match-pair img{width:84px;height:84px;border-radius:18px;object-fit:cover;border:3px solid rgba(255,255,255,.6);}
-.match-pair .vs{font-size:22px;}
+/* ---------- List rows ---------- */
+.list-row{display:flex;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid var(--hairline-soft);}
+.list-thumb{width:64px;height:64px;border-radius:var(--r-sm);object-fit:cover;background:var(--strong);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;}
+.list-thumb img{width:100%;height:100%;object-fit:cover;}
+
+/* ---------- Trades / proposals ---------- */
+.seg-tabs{display:flex;gap:4px;background:var(--soft);border-radius:var(--r-full);padding:4px;margin:20px 0;max-width:480px;}
+.seg-tab{flex:1;text-align:center;padding:9px 10px;border-radius:var(--r-full);font-size:14px;font-weight:500;color:var(--muted);transition:.12s;}
+.seg-tab.active{background:var(--canvas);color:var(--ink);font-weight:600;box-shadow:var(--shadow);}
+.swap-pair{display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:var(--r-sm);padding:10px 12px;}
+.swap-pair .arr{color:var(--muted);flex-shrink:0;}
+.swap-pair .st{width:44px;height:44px;border-radius:var(--r-xs);object-fit:cover;background:var(--strong);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;}
+.swap-pair .st img{width:100%;height:100%;object-fit:cover;}
 
 /* ---------- Chat ---------- */
-.chat-header{display:flex;align-items:center;gap:12px;padding:14px 20px;background:#fff;border-bottom:1px solid #EDF1F5;}
-.chat-header img{width:42px;height:42px;border-radius:50%;object-fit:cover;}
-.trade-banner{margin:10px 20px;background:#F1F5F9;border-radius:14px;padding:10px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;}
-.safety-banner{margin:10px 20px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:14px;padding:11px 14px;font-size:12.5px;color:#92400E;display:flex;gap:8px;}
-.messages{padding:12px 20px;display:flex;flex-direction:column;gap:10px;min-height:280px;}
-.bubble{max-width:75%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.4;}
-.bubble.me{align-self:flex-end;background:var(--grad);color:#fff;border-bottom-right-radius:4px;}
-.bubble.them{align-self:flex-start;background:#fff;border:1px solid #EEF2F6;border-bottom-left-radius:4px;}
-.bubble .time{font-size:10px;opacity:.7;margin-top:3px;display:block;}
-.chat-input-row{display:flex;gap:10px;padding:12px 20px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #EDF1F5;position:sticky;bottom:0;}
-.chat-input-row input{flex:1;}
-.icon-btn{width:44px;height:44px;border-radius:14px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.chat-shell{display:flex;flex-direction:column;height:calc(100vh - 80px);max-width:820px;margin:0 auto;width:100%;}
+@media(max-width:743px){.chat-shell{height:calc(100vh - 64px);}}
+.chat-top{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--hairline-soft);}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px;}
+.bubble{max-width:72%;padding:10px 14px;border-radius:var(--r-lg);font-size:15px;line-height:1.4;word-wrap:break-word;}
+.bubble.me{align-self:flex-end;background:var(--ink);color:#fff;border-bottom-right-radius:var(--r-xs);}
+.bubble.them{align-self:flex-start;background:var(--soft);color:var(--ink);border-bottom-left-radius:var(--r-xs);}
+.bubble .t{display:block;font-size:10.5px;opacity:.6;margin-top:3px;}
+.chat-inputbar{display:flex;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--hairline-soft);background:var(--canvas);}
+.chat-inputbar input{flex:1;height:48px;}
+.safety{margin:12px 16px 0;background:var(--warn-bg);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;color:var(--warn-ink);display:flex;gap:8px;align-items:flex-start;}
+
+/* ---------- Modal ---------- */
+.modal-overlay{position:fixed;inset:0;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;z-index:100;animation:fadeIn .2s ease;}
+@media(min-width:744px){.modal-overlay{align-items:center;}}
+.modal{background:var(--canvas);border-radius:var(--r-md) var(--r-md) 0 0;width:100%;max-width:520px;max-height:86vh;overflow-y:auto;padding:24px;}
+@media(min-width:744px){.modal{border-radius:var(--r-md);}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.offer-opt{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--hairline);border-radius:var(--r-sm);margin-bottom:10px;cursor:pointer;transition:.12s;}
+.offer-opt:hover{border-color:var(--ink);}
+.offer-opt.selected{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);background:var(--soft);}
+
+/* ---------- Match celebration ---------- */
+.match-overlay{position:fixed;inset:0;background:var(--ink);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:32px;}
+.match-overlay .mark{animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes popIn{from{opacity:0;transform:scale(.5) rotate(-40deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.match-overlay h2{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:18px 0 8px;}
+.match-overlay h2 em{font-style:normal;color:#3DDC84;}
+.match-pair{display:flex;align-items:center;gap:18px;margin:28px 0;}
+.match-pair .mp{width:88px;height:88px;border-radius:var(--r-md);object-fit:cover;border:3px solid rgba(255,255,255,.35);background:var(--strong);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;}
+.match-pair .mp img{width:100%;height:100%;object-fit:cover;}
 
 /* ---------- Toast ---------- */
-.toast-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;width:calc(100% - 40px);max-width:420px;}
-.toast{background:var(--text);color:#fff;padding:12px 16px;border-radius:14px;font-size:13.5px;font-weight:500;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px;animation:fadeIn .3s ease;}
+.toast-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;width:calc(100% - 32px);max-width:400px;}
+.toast{background:var(--ink);color:#fff;padding:13px 18px;border-radius:var(--r-sm);font-size:14px;font-weight:500;box-shadow:var(--shadow);animation:fadeIn .25s ease;display:flex;gap:10px;align-items:center;}
+.toast.err{background:var(--error);}
 
-/* ---------- Empty state ---------- */
-.empty{text-align:center;padding:50px 30px;color:var(--gray);}
-.empty .ic{font-size:42px;margin-bottom:12px;}
-.empty h4{color:var(--text);margin:0 0 6px;font-size:16px;}
-.empty p{font-size:13.5px;margin:0;}
+/* ---------- Empty & skeleton ---------- */
+.empty{text-align:center;padding:64px 24px;color:var(--muted);}
+.empty .ic{font-size:40px;margin-bottom:14px;}
+.empty h4{color:var(--ink);font-size:17px;margin-bottom:6px;}
+.empty p{font-size:14px;margin:0 auto;max-width:320px;}
+.skel{background:linear-gradient(90deg,var(--strong) 25%,var(--hairline-soft) 37%,var(--strong) 63%);background-size:400% 100%;animation:sk 1.4s ease infinite;border-radius:var(--r-md);}
+@keyframes sk{0%{background-position:100% 50%}100%{background-position:0 50%}}
+.skel-card .skel.ph{aspect-ratio:1;}
+.skel-card .skel.l1{height:14px;margin-top:10px;width:75%;border-radius:4px;}
+.skel-card .skel.l2{height:12px;margin-top:6px;width:50%;border-radius:4px;}
+
+/* ---------- Footer ---------- */
+.footer{background:var(--ink);color:#fff;margin-top:48px;}
+.footer-inner{max-width:1280px;margin:0 auto;padding:48px 24px 0;}
+.footer-cols{display:grid;grid-template-columns:1fr;gap:32px;padding-bottom:40px;}
+@media(min-width:744px){.footer-cols{grid-template-columns:2fr 1fr 1fr;}}
+.footer h5{font-size:16px;font-weight:600;margin:0 0 14px;}
+.footer .flink{display:block;font-size:14px;color:rgba(255,255,255,.72);padding:5px 0;}
+.footer .flink:hover{color:#fff;text-decoration:underline;}
+.legal-band{border-top:1px solid rgba(255,255,255,.14);padding:20px 0;font-size:13px;color:rgba(255,255,255,.6);display:flex;flex-wrap:wrap;gap:8px 24px;}
 
 /* ---------- Stats ---------- */
-.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 20px;}
-.stat-card{background:#fff;border-radius:16px;padding:16px;border:1px solid #EEF2F6;box-shadow:var(--shadow);}
-.stat-card .n{font-family:'Sora',sans-serif;font-size:26px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
-.stat-card .l{font-size:12px;color:var(--gray);font-weight:600;margin-top:2px;}
+.stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0;}
+@media(min-width:744px){.stats-row{grid-template-columns:repeat(4,1fr);}}
+.stat{border:1px solid var(--hairline);border-radius:var(--r-md);padding:18px;}
+.stat .n{font-size:26px;font-weight:800;letter-spacing:-.02em;}
+.stat .l{font-size:13px;color:var(--muted);margin-top:2px;}
 
-/* ---------- Skeleton ---------- */
-.skel{background:linear-gradient(90deg,#EEF2F6 25%,#E2E8F0 37%,#EEF2F6 63%);background-size:400% 100%;animation:sk 1.4s ease infinite;border-radius:14px;}
-@keyframes sk{0%{background-position:100% 50%}100%{background-position:0 50%}}
-
-/* ---------- Misc ---------- */
-.section-header{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 6px;}
-.link-btn{font-size:13px;font-weight:700;color:var(--blue);}
-.avatar-ring{border-radius:50%;padding:2px;background:var(--grad);display:inline-block;}
-.list-row{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fff;border-radius:16px;border:1px solid #EEF2F6;margin-bottom:10px;}
-.switch{width:42px;height:24px;border-radius:100px;background:#E2E8F0;position:relative;transition:.2s;flex-shrink:0;}
-.switch.on{background:var(--success);}
-.switch .dot{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-.switch.on .dot{left:20px;}
-.admin-metric{background:#fff;border-radius:16px;padding:16px;border:1px solid #EEF2F6;}
-.bar{height:8px;border-radius:6px;background:#EEF2FF;overflow:hidden;}
-.bar > div{height:100%;background:var(--grad);border-radius:6px;}
+/* ---------- Profile ---------- */
+.profile-head{display:flex;flex-direction:column;align-items:center;gap:8px;padding:36px 0 8px;text-align:center;}
+.rating-hero{display:flex;align-items:center;justify-content:center;gap:28px;padding:16px 0;}
+.rating-hero .big{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1;}
+.rating-hero .cell{text-align:center;}
+.rating-hero .cl{font-size:12px;color:var(--muted);margin-top:4px;}
+.rating-hero .sep{width:1px;height:40px;background:var(--hairline-soft);}
 </style>
 </head>
 <body>
-<div id="app-shell">
-  <div id="app"></div>
-</div>
+<div id="app"></div>
 <div class="toast-wrap" id="toastWrap"></div>
+<input type="file" id="photoInput" accept="image/*" multiple style="display:none;">
 
 <script>
 /* ============================================================
-   TROCA JÁ — protótipo de front-end interativo (dados mockados)
+   TROCA JÁ — front-end + Supabase
+   Auth real, produtos, propostas, matches, chat realtime, storage.
    ============================================================ */
 
+const SUPABASE_URL = 'https://zbfzqxicqniwfygybvya.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_UayoNs498CANxN8N8SzKUg_IZLYk_Nh';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 /* ---------- Helpers ---------- */
-const $ = sel => document.querySelector(sel);
-const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
-function toast(msg, icon='✅'){
-  const wrap = $('#toastWrap');
-  const t = el(`<div class="toast">${icon} ${msg}</div>`);
-  wrap.appendChild(t);
-  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 2600);
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(msg, isErr=false){
+  const t = document.createElement('div');
+  t.className = 'toast' + (isErr ? ' err' : '');
+  t.textContent = msg;
+  $('#toastWrap').appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 3200);
 }
-function avatar(seed){ return `https://i.pravatar.cc/150?u=${encodeURIComponent(seed)}`; }
-function photo(seed,w=500,h=380){ return `https://picsum.photos/seed/${encodeURIComponent(seed)}/${w}/${h}`; }
+function timeAgo(iso){
+  const s = Math.floor((Date.now() - new Date(iso).getTime())/1000);
+  if(s < 60) return 'agora';
+  if(s < 3600) return `há ${Math.floor(s/60)} min`;
+  if(s < 86400) return `há ${Math.floor(s/3600)} h`;
+  if(s < 2592000) return `há ${Math.floor(s/86400)} d`;
+  return new Date(iso).toLocaleDateString('pt-BR');
+}
+function fmtTime(iso){ const d = new Date(iso); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
+function photoUrl(path, w=600){
+  if(!path) return null;
+  const { data } = sb.storage.from('product-photos').getPublicUrl(path, { transform: undefined });
+  return data.publicUrl;
+}
+function firstPhoto(p){ return (p.product_photos && p.product_photos.length) ? photoUrl([...p.product_photos].sort((a,b)=>a.position-b.position)[0].path) : null; }
+function initials(name){ return (name||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function avatarEl(profile, size=40){
+  const url = profile?.avatar_url ? photoUrl(profile.avatar_url) : null;
+  return `<span class="avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.38)}px;">${url ? `<img src="${esc(url)}" alt="" style="width:100%;height:100%;object-fit:cover;">` : esc(initials(profile?.name))}</span>`;
+}
+
 const CATS = [
   {k:'eletronicos',label:'Eletrônicos',ic:'🔌'},
   {k:'celulares',label:'Celulares',ic:'📱'},
@@ -292,950 +371,1110 @@ const CATS = [
 ];
 const catIcon = k => (CATS.find(c=>c.k===k)||{}).ic || '📦';
 const catLabel = k => (CATS.find(c=>c.k===k)||{}).label || 'Outros';
+const CONDITIONS = ['Novo','Seminovo','Bom estado','Usado'];
 
-/* ---------- Mock DB ---------- */
-const DB = {
-  users: [
-    {id:'u_me', name:'Você', city:'São Paulo', state:'SP', avatarSeed:'me-user', rating:4.9, trades:1, joined:'2026-03-01'},
-    {id:'u1', name:'João Pedro', city:'São Paulo', state:'SP', avatarSeed:'joao', rating:4.9, trades:12, joined:'2025-11-02'},
-    {id:'u2', name:'Carla Menezes', city:'Belo Horizonte', state:'MG', avatarSeed:'carla', rating:4.7, trades:8, joined:'2025-09-14'},
-    {id:'u3', name:'Rafael Santos', city:'Curitiba', state:'PR', avatarSeed:'rafael', rating:5.0, trades:21, joined:'2025-06-20'},
-    {id:'u4', name:'Bianca Alves', city:'São Paulo', state:'SP', avatarSeed:'bianca', rating:4.6, trades:5, joined:'2026-01-11'},
-    {id:'u5', name:'Diego Ferreira', city:'Porto Alegre', state:'RS', avatarSeed:'diego', rating:4.8, trades:15, joined:'2025-08-03'},
-  ],
-  products: [
-    {id:'p1', ownerId:'u1', name:'iPhone 12 128GB', category:'celulares', condition:'Bom estado', brand:'Apple', model:'iPhone 12', year:'2021', city:'São Paulo', state:'SP', desc:'iPhone 12 128GB azul, bateria 89%, sem trincos, acompanha carregador.', photos:['iphone12-a','iphone12-b','iphone12-c'], wants:['videogames','computadores'], status:'ativo', createdAt:'2026-08-01'},
-    {id:'p2', ownerId:'u2', name:'PlayStation 5', category:'videogames', condition:'Seminovo', brand:'Sony', model:'PS5 Digital', year:'2022', city:'Belo Horizonte', state:'MG', desc:'PS5 edição digital, acompanha 1 controle e 2 jogos.', photos:['ps5-a','ps5-b'], wants:['celulares','computadores','bicicletas'], status:'ativo', createdAt:'2026-08-05'},
-    {id:'p3', ownerId:'u3', name:'Notebook Dell Inspiron', category:'computadores', condition:'Bom estado', brand:'Dell', model:'Inspiron 15', year:'2020', city:'Curitiba', state:'PR', desc:'8GB RAM, SSD 256GB, ótimo para trabalho e estudo.', photos:['dell-a','dell-b'], wants:['celulares','videogames'], status:'ativo', createdAt:'2026-07-29'},
-    {id:'p4', ownerId:'u4', name:'Bicicleta Caloi Aro 29', category:'bicicletas', condition:'Usado', brand:'Caloi', model:'Elite', year:'2019', city:'São Paulo', state:'SP', desc:'Bike em ótimo estado, revisada recentemente, freios a disco.', photos:['bike-a','bike-b'], wants:['eletronicos','esportes'], status:'ativo', createdAt:'2026-08-08'},
-    {id:'p5', ownerId:'u5', name:'Guitarra Tagima Elétrica', category:'instrumentos', condition:'Bom estado', brand:'Tagima', model:'TW-55', year:'2021', city:'Porto Alegre', state:'RS', desc:'Guitarra completa, acompanha cabo e capa.', photos:['guitar-a','guitar-b'], wants:['celulares','videogames'], status:'ativo', createdAt:'2026-08-09'},
-    {id:'p6', ownerId:'u1', name:'Smart TV 50" 4K', category:'eletronicos', condition:'Seminovo', brand:'Samsung', model:'Crystal UHD', year:'2022', city:'São Paulo', state:'SP', desc:'TV impecável, controle original, poucas marcas de uso.', photos:['tv-a','tv-b'], wants:['celulares','computadores'], status:'ativo', createdAt:'2026-08-02'},
-    {id:'p7', ownerId:'u3', name:'Sofá 3 Lugares Retrátil', category:'moveis', condition:'Bom estado', brand:'—', model:'—', year:'2020', city:'Curitiba', state:'PR', desc:'Sofá confortável, cor cinza, sem manchas.', photos:['sofa-a','sofa-b'], wants:['eletrodomesticos','eletronicos'], status:'ativo', createdAt:'2026-07-20'},
-    {id:'p8', ownerId:'u2', name:'Kit Livros Ficção (12 un)', category:'livros', condition:'Bom estado', brand:'Vários', model:'—', year:'—', city:'Belo Horizonte', state:'MG', desc:'Coleção de 12 livros de ficção best-sellers.', photos:['books-a','books-b'], wants:['livros','instrumentos'], status:'ativo', createdAt:'2026-08-10'},
-    // meus produtos (usuário logado)
-    {id:'m1', ownerId:'u_me', name:'iPhone 11', category:'celulares', condition:'Bom estado', brand:'Apple', model:'iPhone 11', year:'2019', city:'São Paulo', state:'SP', desc:'iPhone 11 64GB preto, bateria 84%.', photos:['iphone11-a','iphone11-b'], wants:['videogames','computadores'], status:'ativo', createdAt:'2026-07-15'},
-    {id:'m2', ownerId:'u_me', name:'Notebook Dell G3', category:'computadores', condition:'Usado', brand:'Dell', model:'G3 3500', year:'2020', city:'São Paulo', state:'SP', desc:'Notebook gamer, GTX 1650, 16GB RAM.', photos:['notebook-a','notebook-b'], wants:['celulares','bicicletas'], status:'em_negociacao', createdAt:'2026-06-28'},
-    {id:'m3', ownerId:'u_me', name:'Bicicleta Speed Caloi', category:'bicicletas', condition:'Bom estado', brand:'Caloi', model:'10 Speed', year:'2021', city:'São Paulo', state:'SP', desc:'Bicicleta speed, quadro alumínio, 21 marchas.', photos:['speed-a','speed-b'], wants:['eletronicos','celulares'], status:'trocado', createdAt:'2026-05-10'},
-    {id:'m4', ownerId:'u_me', name:'Console Xbox One S', category:'videogames', condition:'Seminovo', brand:'Microsoft', model:'Xbox One S', year:'2020', city:'São Paulo', state:'SP', desc:'Xbox completo com 2 controles e 5 jogos.', photos:['xbox-a','xbox-b'], wants:['celulares','instrumentos'], status:'ativo', createdAt:'2026-08-11'},
-  ],
-  proposals: [],
-  matches: [
-    {id:'match_seed', userAId:'u_me', productAId:'m3', userBId:'u3', productBId:'p3', createdAt:'2026-08-06'},
-  ],
-  messages: {
-    'match_seed': [
-      {from:'u3', text:'Oi! Vi que você tem interesse no meu notebook 😄', time:'09:12'},
-      {from:'u_me', text:'Isso aí! A speed está pouco usada, posso mandar mais fotos.', time:'09:14'},
-      {from:'u3', text:'Show, pode mandar sim! Onde a gente combina a entrega?', time:'09:15'},
-    ]
-  },
-  notifications: [
-    {id:'n1', type:'match', text:'Você e Rafael Santos deram match! Notebook Dell ↔ Bicicleta Speed.', time:'há 2 dias', read:true},
-    {id:'n2', type:'interest', text:'Bianca Alves demonstrou interesse no seu Xbox One S.', time:'há 5 horas', read:false},
-    {id:'n3', type:'message', text:'Nova mensagem de Rafael Santos.', time:'há 1 hora', read:false},
-    {id:'n4', type:'review', text:'Você recebeu uma avaliação de 5 estrelas de Diego Ferreira.', time:'há 3 dias', read:true},
-  ],
+/* ---------- SVG icons ---------- */
+const I = {
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  heart:'<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.8-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2-2.5 4.5-10 9.3-10 9.3z"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>',
+  send:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
+  home:'<svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>',
+  swap:'<svg viewBox="0 0 24 24"><path d="M7 8h11M15 4.5L18.5 8 15 11.5"/><path d="M17 16H6M9 12.5L5.5 16 9 19.5"/></svg>',
+  plus:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 8v8M8 12h8"/></svg>',
+  user:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c1.5-3.5 4.2-5 7.5-5s6 1.5 7.5 5"/></svg>',
+  star:'<svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5.2 4.7 1.4 6.9L12 17.5 5.8 20.9l1.4-6.9L2 9.3l7-.8z"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 7.8-8 9-4.6-1.2-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4" stroke-linecap="round"/></svg>',
+  camera:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
 };
 
-/* ---------- App State ---------- */
+function logoMark(size=34){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 40 40" fill="none">
+    <circle cx="20" cy="20" r="20" fill="#00843D"/>
+    <path d="M13 16.5C13 14 15 12 17.5 12H26M23 8.5L27 12L23 15.5M27 23.5C27 26 25 28 22.5 28H14M17 20.5L13 24L17 27.5" stroke="white" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+/* ---------- App state ---------- */
 const state = {
-  screen: 'landing',
-  loggedIn: false,
+  screen: 'home',
   params: {},
-  offerModal: null,     // productId being pursued
-  offerSelectedId: null,
+  session: null,
+  profile: null,
+  unread: 0,
+  renderToken: 0,
 };
+let activeChannel = null;
+
+function uid(){ return state.session?.user?.id || null; }
 
 function nav(screen, params={}){
-  state.screen = screen; state.params = params;
+  if(activeChannel){ sb.removeChannel(activeChannel); activeChannel = null; }
+  state.screen = screen;
+  state.params = params;
   window.scrollTo(0,0);
   render();
 }
 
-/* ---------- Icons (inline svg, minimal) ---------- */
-const ICON = {
-  home:'🏠', explore:'🔍', add:'➕', matches:'💬', profile:'👤',
-  bell:'🔔', settings:'⚙️', back:'←', share:'↗️', heart:'❤️', heartO:'🤍',
-  send:'➤', camera:'📷', pin:'📍', check:'✔️', shield:'🛡️'
-};
+const AUTH_SCREENS = ['publish','edit','myProducts','trades','chat','notifications','settings','editProfile'];
 
-function logoMark(size=34){
-  return `<svg class="logo-mark" width="${size}" height="${size}" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="lg" x1="0" y1="0" x2="40" y2="40"><stop offset="0" stop-color="#2563EB"/><stop offset="1" stop-color="#14B8A6"/></linearGradient></defs>
-    <circle cx="20" cy="20" r="20" fill="url(#lg)"/>
-    <path d="M13 16.5C13 14 15 12 17.5 12H26" stroke="white" stroke-width="2.4" stroke-linecap="round"/>
-    <path d="M23 8.5L27 12L23 15.5" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M27 23.5C27 26 25 28 22.5 28H14" stroke="white" stroke-width="2.4" stroke-linecap="round"/>
-    <path d="M17 20.5L13 24L17 27.5" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>`;
+/* ---------- Data layer ---------- */
+const PRODUCT_SELECT = '*, profiles:owner_id(id,name,city,state,avatar_url,rating,trades), product_photos(id,path,position)';
+
+async function fetchProducts({q='', cat='todos', excludeMine=true} = {}){
+  let query = sb.from('products').select(PRODUCT_SELECT).eq('status','ativo').order('created_at',{ascending:false}).limit(60);
+  if(cat !== 'todos') query = query.eq('category', cat);
+  if(q) query = query.ilike('name', `%${q}%`);
+  if(excludeMine && uid()) query = query.neq('owner_id', uid());
+  const { data, error } = await query;
+  if(error) throw error;
+  return data || [];
+}
+
+async function fetchProduct(id){
+  const { data, error } = await sb.from('products').select(PRODUCT_SELECT).eq('id', id).single();
+  if(error) throw error;
+  return data;
+}
+
+async function fetchMyProducts(){
+  const { data, error } = await sb.from('products').select(PRODUCT_SELECT).eq('owner_id', uid()).order('created_at',{ascending:false});
+  if(error) throw error;
+  return data || [];
+}
+
+async function fetchProfile(id){
+  const { data, error } = await sb.from('profiles').select('*').eq('id', id).single();
+  if(error) throw error;
+  return data;
+}
+
+async function fetchUserProducts(ownerId){
+  const { data, error } = await sb.from('products').select(PRODUCT_SELECT).eq('owner_id', ownerId).eq('status','ativo').order('created_at',{ascending:false});
+  if(error) throw error;
+  return data || [];
+}
+
+const PROPOSAL_SELECT = `*,
+  wanted:wanted_product_id(id,name,category,status,owner_id,product_photos(path,position)),
+  offered:offered_product_id(id,name,category,status,owner_id,product_photos(path,position)),
+  from_profile:from_user_id(id,name,city,state,avatar_url),
+  to_profile:to_user_id(id,name,city,state,avatar_url)`;
+
+async function fetchProposals(){
+  const { data, error } = await sb.from('proposals').select(PROPOSAL_SELECT).or(`from_user_id.eq.${uid()},to_user_id.eq.${uid()}`).order('created_at',{ascending:false});
+  if(error) throw error;
+  return data || [];
+}
+
+const MATCH_SELECT = `*,
+  pa:product_a(id,name,product_photos(path,position)),
+  pb:product_b(id,name,product_photos(path,position)),
+  ua:user_a(id,name,city,state,avatar_url),
+  ub:user_b(id,name,city,state,avatar_url)`;
+
+async function fetchMatches(){
+  const { data, error } = await sb.from('matches').select(MATCH_SELECT).or(`user_a.eq.${uid()},user_b.eq.${uid()}`).order('created_at',{ascending:false});
+  if(error) throw error;
+  return data || [];
+}
+
+async function fetchMatch(id){
+  const { data, error } = await sb.from('matches').select(MATCH_SELECT).eq('id', id).single();
+  if(error) throw error;
+  return data;
+}
+
+async function fetchMessages(matchId){
+  const { data, error } = await sb.from('messages').select('*').eq('match_id', matchId).order('created_at',{ascending:true}).limit(200);
+  if(error) throw error;
+  return data || [];
+}
+
+async function fetchNotifications(){
+  const { data, error } = await sb.from('notifications').select('*').eq('user_id', uid()).order('created_at',{ascending:false}).limit(50);
+  if(error) throw error;
+  return data || [];
+}
+
+async function refreshUnread(){
+  if(!uid()){ state.unread = 0; return; }
+  const { count } = await sb.from('notifications').select('id',{count:'exact', head:true}).eq('user_id', uid()).eq('read', false);
+  state.unread = count || 0;
+}
+
+async function uploadPhotos(files){
+  const paths = [];
+  for(const file of files){
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+    const path = `${uid()}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const { error } = await sb.storage.from('product-photos').upload(path, file, { contentType: file.type || 'image/jpeg' });
+    if(error) throw error;
+    paths.push(path);
+  }
+  return paths;
+}
+
+/* ---------- Auth ---------- */
+async function initAuth(){
+  const { data: { session } } = await sb.auth.getSession();
+  state.session = session;
+  if(session) await loadOwnProfile();
+  sb.auth.onAuthStateChange(async (event, session) => {
+    state.session = session;
+    if(event === 'PASSWORD_RECOVERY'){ nav('resetPassword'); return; }
+    if(event === 'SIGNED_IN' && !state.profile) await loadOwnProfile();
+    if(event === 'SIGNED_OUT'){ state.profile = null; state.unread = 0; nav('home'); }
+  });
+}
+
+async function loadOwnProfile(){
+  try{
+    state.profile = await fetchProfile(uid());
+    await refreshUnread();
+  }catch(e){ console.error('profile load', e); }
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  toast('Você saiu da sua conta.');
 }
 
 /* ============================================================
-   RENDER — router
+   RENDER — router com skeleton + async
    ============================================================ */
-function render(){
+const screens = {};
+
+async function render(){
+  const token = ++state.renderToken;
   const app = $('#app');
-  let html = '';
-  switch(state.screen){
-    case 'landing': html = ScreenLanding(); break;
-    case 'login': html = ScreenLogin(); break;
-    case 'signup': html = ScreenSignup(); break;
-    case 'forgot': html = ScreenForgot(); break;
-    case 'feed': html = ScreenFeed(); break;
-    case 'product': html = ScreenProduct(state.params.id); break;
-    case 'publish': html = ScreenPublish(); break;
-    case 'myProducts': html = ScreenMyProducts(); break;
-    case 'matches': html = ScreenMatches(); break;
-    case 'chat': html = ScreenChat(state.params.id); break;
-    case 'profile': html = ScreenProfile(state.params.id || 'u_me'); break;
-    case 'notifications': html = ScreenNotifications(); break;
-    case 'settings': html = ScreenSettings(); break;
-    case 'admin': html = ScreenAdmin(); break;
-    default: html = ScreenLanding();
+  const fn = screens[state.screen] || screens.home;
+  if(AUTH_SCREENS.includes(state.screen) && !state.session){
+    state.screen = 'login'; state.params = { next: state.screen };
+    return render();
   }
-  app.innerHTML = html;
-  attachHandlers();
+  if(fn.skeleton) app.innerHTML = fn.skeleton();
+  try{
+    const html = await fn();
+    if(token !== state.renderToken) return; // navegação mudou durante o fetch
+    app.innerHTML = html;
+    fn.after && fn.after();
+  }catch(e){
+    console.error(e);
+    if(token !== state.renderToken) return;
+    app.innerHTML = topnav() + `<div class="page"><div class="empty"><div class="ic">⚠️</div><h4>Algo deu errado</h4><p>${esc(e.message || 'Não foi possível carregar. Tente novamente.')}</p><button class="btn btn-secondary" style="margin-top:16px;" data-action="retry">Tentar novamente</button></div></div>`;
+  }
 }
 
-const AUTH_SCREENS = ['feed','product','publish','myProducts','matches','chat','profile','notifications','settings'];
-function shell(innerHtml, {nav:navName=null, topbar=null}={}){
-  return `
-    ${topbar || ''}
-    <div class="fade-in">${innerHtml}</div>
-    ${navName ? bottomNav(navName) : ''}
-  `;
+/* ---------- Chrome ---------- */
+function topnav({showSearch=false, q=''} = {}){
+  const logged = !!state.session;
+  return `<nav class="topnav"><div class="topnav-inner">
+    <a class="brand" data-nav="home">${logoMark(34)}<span>Troca Já</span></a>
+    ${showSearch ? `<form class="search-pill" data-form="search" style="display:none;">
+      <input name="q" placeholder="O que você procura?" value="${esc(q)}" aria-label="Buscar produtos">
+      <button class="search-orb" type="submit" aria-label="Buscar">${I.search}</button>
+    </form>` : ''}
+    <div class="nav-links">
+      <a data-nav="home">Explorar</a>
+      ${logged ? `<a data-nav="trades">Trocas</a><a data-nav="myProducts">Meus produtos</a>` : ''}
+    </div>
+    <div class="nav-right">
+      ${logged ? `
+        <button class="btn btn-pill btn-primary" data-nav="publish" style="display:none;" id="navPublish">＋ Anunciar</button>
+        <button class="icon-circle lg" data-nav="notifications" aria-label="Notificações" style="position:relative;">${I.bell}${state.unread ? `<span style="position:absolute;top:2px;right:2px;width:9px;height:9px;background:var(--green);border-radius:50%;border:2px solid #fff;"></span>` : ''}</button>
+        <button data-nav="profile" aria-label="Perfil" style="padding:0;border-radius:50%;">${avatarEl(state.profile, 40)}</button>
+      ` : `
+        <button class="btn btn-text" data-nav="login" style="text-decoration:none;font-weight:600;">Entrar</button>
+        <button class="btn btn-pill btn-dark" data-nav="signup">Criar conta</button>
+      `}
+    </div>
+  </div></nav>
+  <style>@media(min-width:744px){.search-pill[data-form=search]{display:flex !important;} #navPublish{display:inline-flex !important;}}</style>`;
 }
 
 function bottomNav(active){
+  if(!state.session) return '';
   const items = [
-    {k:'home', ic:ICON.home, label:'Início', screen:'feed'},
-    {k:'explore', ic:ICON.explore, label:'Explorar', screen:'feed'},
-    {k:'add', ic:ICON.add, label:'', screen:'publish', fab:true},
-    {k:'matches', ic:ICON.matches, label:'Matches', screen:'matches'},
-    {k:'profile', ic:ICON.profile, label:'Perfil', screen:'profile'},
+    {k:'home', ic:I.home, label:'Explorar'},
+    {k:'trades', ic:I.swap, label:'Trocas'},
+    {k:'publish', ic:I.plus, label:'Anunciar'},
+    {k:'notifications', ic:I.bell, label:'Avisos', dot: state.unread > 0},
+    {k:'profile', ic:I.user, label:'Perfil'},
   ];
-  return `<div class="bottom-nav">
-    ${items.map(it=>`
-      <button class="nav-item ${it.fab?'fab':''} ${active===it.k?'active':''}" data-nav="${it.screen}">
-        <span class="ic">${it.ic}</span>${it.fab?'':`<span class="lbl">${it.label}</span>`}
-      </button>
-    `).join('')}
+  return `<div class="bottom-nav">${items.map(it=>`
+    <button class="bnav-item ${active===it.k?'active':''}" data-nav="${it.k}">
+      ${it.ic}<span>${it.label}</span>${it.dot ? '<span class="dot"></span>' : ''}
+    </button>`).join('')}
   </div>`;
 }
 
-function topBarApp(title, {back=false, right=''}={}){
-  return `<div class="topbar">
-    <div style="display:flex;align-items:center;gap:10px;">
-      ${back ? `<button data-back class="icon-btn" style="width:36px;height:36px;">${ICON.back}</button>` : logoMark(30)}
-      <span class="font-display" style="font-weight:700;font-size:17px;">${title}</span>
-    </div>
-    <div>${right}</div>
-  </div>`;
-}
-
-/* ============================================================
-   LANDING PAGE
-   ============================================================ */
-function ScreenLanding(){
-  return `
-  <div>
-    <div class="landing-nav">
-      <div class="logo">${logoMark(32)} Troca Já</div>
-      <div class="links">
-        <a data-nav="feed">Explorar</a>
-        <a href="#como-funciona">Como funciona</a>
-        <a href="#categorias">Categorias</a>
-      </div>
-      <div style="display:flex;gap:10px;">
-        <button class="btn btn-outline btn-sm" data-nav="login">Entrar</button>
-        <button class="btn btn-primary btn-sm" data-nav="signup">Criar conta</button>
-      </div>
-    </div>
-
-    <div class="hero">
+function footer(){
+  return `<footer class="footer"><div class="footer-inner">
+    <div class="footer-cols">
       <div>
-        <div class="eyebrow">🔁 Feito para o jeito brasileiro de trocar</div>
-        <h1>Seu produto parado pode valer <span class="accent">o que você precisa.</span></h1>
-        <p>No Troca Já, você encontra pessoas que querem trocar produtos com você. Sem complicação e com oportunidades reais.</p>
-        <div class="hero-actions">
-          <button class="btn btn-primary" data-nav="signup">Começar a trocar</button>
-          <button class="btn btn-outline" data-nav="feed">Explorar produtos</button>
-        </div>
+        <div class="brand" style="color:#fff;margin-bottom:14px;">${logoMark(30)}<span>Troca Já</span></div>
+        <p style="font-size:14px;color:rgba(255,255,255,.72);max-width:340px;margin:0;line-height:1.5;">Seu próximo produto pode estar a uma troca de distância. Plataforma brasileira de troca de produtos entre pessoas.</p>
       </div>
-      <div class="hero-illustration">
-        ${heroIllustration()}
+      <div>
+        <h5>Plataforma</h5>
+        <a class="flink" data-nav="home">Explorar produtos</a>
+        <a class="flink" data-nav="signup">Criar conta</a>
+        <a class="flink" data-nav="publish">Anunciar produto</a>
+      </div>
+      <div>
+        <h5>Segurança</h5>
+        <a class="flink" data-nav="home">Dicas de troca segura</a>
+        <a class="flink" data-nav="home">Termos de uso</a>
+        <a class="flink" data-nav="home">Privacidade</a>
       </div>
     </div>
+    <div class="legal-band"><span>© 2026 Troca Já. Todos os direitos reservados.</span><span>Feito no Brasil 🇧🇷</span></div>
+  </div></footer>`;
+}
 
-    <div class="landing-section" id="como-funciona">
-      <h2 class="section-title">Como funciona?</h2>
-      <p class="section-sub">Do produto parado na gaveta até a próxima troca combinada.</p>
-      <div class="steps-grid">
-        <div class="step-card"><div class="step-num">01</div><h4>Cadastre seu produto</h4><p>Tire fotos e informe o que você possui.</p></div>
-        <div class="step-card"><div class="step-num">02</div><h4>Encontre o que procura</h4><p>Navegue por produtos disponíveis para troca.</p></div>
-        <div class="step-card"><div class="step-num">03</div><h4>Deu match?</h4><p>Quando os dois usuários demonstrarem interesse, o chat é liberado.</p></div>
-        <div class="step-card"><div class="step-num">04</div><h4>Combine a troca</h4><p>Converse pelo chat e combine os detalhes da troca.</p></div>
-      </div>
-    </div>
-
-    <div class="landing-section" id="categorias">
-      <h2 class="section-title">O que tem por aí</h2>
-      <p class="section-sub">Categorias mais trocadas na plataforma.</p>
-      <div class="cat-grid">
-        ${CATS.map(c=>`<div class="cat-chip" data-nav="feed"><div class="ic">${c.ic}</div><span>${c.label}</span></div>`).join('')}
-      </div>
-    </div>
-
-    <div class="landing-section" style="text-align:center;padding-top:10px;padding-bottom:56px;">
-      <div class="card" style="padding:36px 24px;background:var(--grad);border:none;">
-        <h2 style="color:#fff;margin:0 0 10px;font-size:24px;">Tem algo parado aí?</h2>
-        <p style="color:rgba(255,255,255,.9);margin:0 0 20px;font-size:14.5px;">Talvez alguém esteja procurando exatamente o que você tem.</p>
-        <button class="btn" style="background:#fff;color:var(--blue);" data-nav="signup">Bora trocar? →</button>
-      </div>
-    </div>
-
-    <div class="footer">
-      <div class="container-wide">
-        <div class="logo">${logoMark(28)} Troca Já</div>
-        <p style="font-size:13px;color:#94A3B8;max-width:420px;margin:0;">Seu próximo produto pode estar a uma troca de distância. Plataforma brasileira de troca de produtos entre pessoas.</p>
-        <p style="font-size:12px;color:#64748B;margin:10px 0 0;">© 2026 Troca Já. Todos os direitos reservados.</p>
-      </div>
-    </div>
+function skeletonGrid(n=8){
+  return `<div class="grid">${Array.from({length:n}).map(()=>`
+    <div class="skel-card"><div class="skel ph"></div><div class="skel l1"></div><div class="skel l2"></div></div>`).join('')}
   </div>`;
 }
 
-function heroIllustration(){
-  return `<svg viewBox="0 0 420 320" width="100%" style="max-width:460px;display:block;margin:0 auto;">
-    <defs>
-      <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#2563EB"/><stop offset="1" stop-color="#14B8A6"/>
-      </linearGradient>
-    </defs>
-    <rect x="10" y="20" width="400" height="280" rx="28" fill="#EEF2FF"/>
-    <circle cx="95" cy="120" r="46" fill="#fff"/>
-    <circle cx="95" cy="105" r="20" fill="#CBD5E1"/>
-    <rect x="60" y="128" width="70" height="46" rx="20" fill="#CBD5E1"/>
-    <circle cx="325" cy="200" r="46" fill="#fff"/>
-    <circle cx="325" cy="185" r="20" fill="#94A3B8"/>
-    <rect x="290" y="208" width="70" height="46" rx="20" fill="#94A3B8"/>
-    <rect x="150" y="95" width="64" height="64" rx="14" fill="url(#hg)" transform="rotate(-8 182 127)"/>
-    <text x="182" y="135" font-size="26" text-anchor="middle" transform="rotate(-8 182 127)">📱</text>
-    <rect x="205" y="175" width="64" height="64" rx="14" fill="url(#hg)" transform="rotate(6 237 207)"/>
-    <text x="237" y="215" font-size="26" text-anchor="middle" transform="rotate(6 237 207)">🎮</text>
-    <path d="M180 150 C 200 120, 240 110, 255 150" stroke="url(#hg)" stroke-width="3" fill="none" stroke-dasharray="6 6"/>
-    <path d="M255 150 l -10 -8 M255 150 l -4 12" stroke="url(#hg)" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <path d="M235 175 C 215 200, 175 205, 165 168" stroke="url(#hg)" stroke-width="3" fill="none" stroke-dasharray="6 6"/>
-    <path d="M165 168 l 10 6 M165 168 l 6 -11" stroke="url(#hg)" stroke-width="3" fill="none" stroke-linecap="round"/>
-  </svg>`;
-}
-
-/* ============================================================
-   LOGIN / SIGNUP / FORGOT
-   ============================================================ */
-function authTopbar(title){
-  return `<div class="topbar">
-    <button data-nav="landing" class="icon-btn" style="width:36px;height:36px;">${ICON.back}</button>
-    <div class="logo">${logoMark(26)} ${title}</div>
-    <div style="width:36px;"></div>
-  </div>`;
-}
-
-function ScreenLogin(){
-  return `
-  ${authTopbar('Entrar')}
-  <div class="auth-wrap fade-in">
-    <div class="auth-illustration">${miniIllustration('🔑')}</div>
-    <h2 class="section-title" style="text-align:center;">Bem-vindo de volta</h2>
-    <p class="section-sub" style="text-align:center;">Pronto pra ver o que mudou desde sua última visita?</p>
-    <form data-form="login">
-      <div class="field"><label class="label">E-mail</label><input class="input" type="email" placeholder="voce@email.com" required></div>
-      <div class="field"><label class="label">Senha</label><input class="input" type="password" placeholder="••••••••" required></div>
-      <div style="text-align:right;margin-bottom:18px;"><a data-nav="forgot" class="link-btn">Esqueci minha senha</a></div>
-      <button class="btn btn-primary btn-block" type="submit">Entrar</button>
-    </form>
-    <div class="divider">ou</div>
-    <button class="btn btn-outline btn-block" data-action="google-login">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.4C29.6 35.4 26.9 36 24 36c-5.3 0-9.6-3.4-11.3-8.1l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.4C41.8 35.5 44 30.2 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
-      Continuar com Google
-    </button>
-    <p style="text-align:center;font-size:13.5px;color:var(--gray);margin-top:20px;">Não tem conta? <a data-nav="signup" class="link-btn">Criar uma conta</a></p>
-  </div>`;
-}
-
-function ScreenSignup(){
-  return `
-  ${authTopbar('Criar conta')}
-  <div class="auth-wrap fade-in">
-    <h2 class="section-title" style="text-align:center;">Vamos começar 🎉</h2>
-    <p class="section-sub" style="text-align:center;">Leva menos de 1 minuto pra criar sua conta.</p>
-    <form data-form="signup">
-      <div class="field"><label class="label">Nome completo</label><input class="input" placeholder="Seu nome" required></div>
-      <div class="field"><label class="label">E-mail</label><input class="input" type="email" placeholder="voce@email.com" required></div>
-      <div class="field"><label class="label">Senha</label><input class="input" type="password" placeholder="Crie uma senha" required></div>
-      <div class="field"><label class="label">Confirmar senha</label><input class="input" type="password" placeholder="Repita a senha" required></div>
-      <div style="display:flex;gap:12px;">
-        <div class="field" style="flex:2;"><label class="label">Cidade</label><input class="input" placeholder="São Paulo" required></div>
-        <div class="field" style="flex:1;"><label class="label">Estado</label><input class="input" placeholder="SP" maxlength="2" required></div>
-      </div>
-      <div class="field">
-        <label class="label">Foto de perfil (opcional)</label>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:52px;height:52px;border-radius:50%;background:#EEF2FF;display:flex;align-items:center;justify-content:center;font-size:20px;">👤</div>
-          <button type="button" class="btn btn-ghost btn-sm">Escolher foto</button>
-        </div>
-      </div>
-      <div class="checkbox-row" style="margin:16px 0 20px;">
-        <input type="checkbox" required id="terms">
-        <label for="terms">Li e concordo com os <a class="link-btn" style="display:inline;">Termos de Uso</a> e <a class="link-btn" style="display:inline;">Política de Privacidade</a>.</label>
-      </div>
-      <button class="btn btn-primary btn-block" type="submit">Criar minha conta</button>
-    </form>
-    <p style="text-align:center;font-size:13.5px;color:var(--gray);margin-top:20px;">Já tem conta? <a data-nav="login" class="link-btn">Entrar</a></p>
-  </div>`;
-}
-
-function ScreenForgot(){
-  return `
-  ${authTopbar('Recuperar senha')}
-  <div class="auth-wrap fade-in">
-    <div class="auth-illustration">${miniIllustration('✉️')}</div>
-    <h2 class="section-title" style="text-align:center;">Esqueceu sua senha?</h2>
-    <p class="section-sub" style="text-align:center;">Sem problema. Envie seu e-mail que mandamos um link de recuperação.</p>
-    <form data-form="forgot">
-      <div class="field"><label class="label">E-mail cadastrado</label><input class="input" type="email" placeholder="voce@email.com" required></div>
-      <button class="btn btn-primary btn-block" type="submit">Enviar link de recuperação</button>
-    </form>
-    <p style="text-align:center;font-size:13.5px;color:var(--gray);margin-top:20px;"><a data-nav="login" class="link-btn">Voltar para o login</a></p>
-  </div>`;
-}
-
-function miniIllustration(emoji){
-  return `<div style="width:110px;height:110px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:44px;margin:0 auto;box-shadow:0 16px 30px -10px rgba(37,99,235,.45);">${emoji}</div>`;
-}
-
-/* ============================================================
-   FEED
-   ============================================================ */
-let feedFilter = 'todos';
-function ScreenFeed(){
-  const me = DB.users.find(u=>u.id==='u_me');
-  const q = (state.params.q||'').toLowerCase();
-  let items = DB.products.filter(p=>p.ownerId!=='u_me' && p.status==='ativo');
-  if(feedFilter!=='todos') items = items.filter(p=>p.category===feedFilter);
-  if(q) items = items.filter(p=>p.name.toLowerCase().includes(q));
-
-  const top = `<div class="topbar">
-    <div class="logo">${logoMark(30)} Troca Já</div>
-    <div style="display:flex;gap:14px;align-items:center;">
-      <button data-nav="notifications" class="icon-btn" style="width:36px;height:36px;position:relative;">${ICON.bell}
-        <span style="position:absolute;top:5px;right:6px;width:8px;height:8px;background:#EF4444;border-radius:50%;"></span>
-      </button>
-    </div>
-  </div>`;
-
-  const body = `
-    <div style="padding:16px 20px 4px;">
-      <h2 class="font-display" style="margin:0 0 2px;font-size:19px;">Olá, ${me.name.split(' ')[0]} 👋</h2>
-      <p style="margin:0;color:var(--gray);font-size:13.5px;">O que você está procurando hoje?</p>
-    </div>
-    <div class="search-wrap">
-      <div class="search-box">
-        <span>🔍</span>
-        <input id="searchInput" placeholder="Procure celulares, videogames, notebooks..." value="${state.params.q||''}">
-      </div>
-    </div>
-    <div class="filter-row">
-      <button class="filter-chip ${feedFilter==='todos'?'active':''}" data-filter="todos">Todos</button>
-      ${CATS.map(c=>`<button class="filter-chip ${feedFilter===c.k?'active':''}" data-filter="${c.k}">${c.ic} ${c.label}</button>`).join('')}
-    </div>
-
-    <div class="section-header"><h3 style="font-size:15.5px;margin:0;">Recomendados para você</h3></div>
-    ${productGrid(items.slice(0,4))}
-
-    <div class="section-header"><h3 style="font-size:15.5px;margin:0;">Perto de você · ${me.city}</h3></div>
-    ${productGrid(items.filter(p=>p.city===me.city))}
-
-    <div class="section-header"><h3 style="font-size:15.5px;margin:0;">Novidades</h3></div>
-    ${productGrid([...items].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,4))}
-    <div style="height:12px;"></div>
-  `;
-  return shell(body, {nav:'home', topbar: top});
-}
-
-function productGrid(items){
-  if(items.length===0) return `<div class="empty" style="padding:30px;"><div class="ic">🔎</div><h4>Nada por aqui ainda</h4><p>Tente outra categoria ou busca.</p></div>`;
-  return `<div class="product-grid">${items.map(productCard).join('')}</div>`;
-}
-
+/* ---------- Product card ---------- */
 function productCard(p){
-  const owner = DB.users.find(u=>u.id===p.ownerId);
-  return `<div class="pcard" data-nav="product" data-id="${p.id}">
-    <div class="img-wrap">
-      <img src="${photo(p.photos[0],400,300)}" alt="${p.name}" loading="lazy">
-      <div class="heart" data-interest="${p.id}">${ICON.heartO}</div>
+  const owner = p.profiles;
+  const img = firstPhoto(p);
+  const isNew = (Date.now() - new Date(p.created_at).getTime()) < 3*86400000;
+  return `<div class="pcard" data-nav="product" data-id="${esc(p.id)}">
+    <div class="photo">
+      ${img ? `<img src="${esc(img)}" alt="${esc(p.name)}" loading="lazy">` : `<div class="ph-fallback">${catIcon(p.category)}</div>`}
+      ${isNew ? `<span class="fav-badge">Novo anúncio</span>` : ''}
     </div>
-    <div class="body">
-      <div class="cat">${catLabel(p.category)}</div>
-      <div class="name">${p.name}</div>
-      <div class="cond">${p.condition}</div>
-      <div class="loc">📍 ${p.city} - ${p.state}</div>
-      <div class="owner"><img src="${avatar(owner.avatarSeed)}"><span>${owner.name.split(' ')[0]}</span></div>
-      <button class="btn btn-primary btn-sm btn-block" data-interest="${p.id}">Quero trocar</button>
+    <div class="meta">
+      <div class="name"><span>${esc(p.name)}</span>${owner?.rating ? `<span class="rating">${I.star}${Number(owner.rating).toFixed(1)}</span>` : ''}</div>
+      <div class="sub">${esc(p.city || '')}${p.state ? ' · '+esc(p.state) : ''} · ${esc(p.condition || '')}</div>
+      <div class="want">Aceita: ${(p.wants||[]).slice(0,2).map(catLabel).join(', ') || 'aberto a propostas'}</div>
     </div>
   </div>`;
 }
+
+/* ============================================================
+   HOME — marketplace (público + logado)
+   ============================================================ */
+let homeQ = '', homeCat = 'todos';
+screens.home = async function(){
+  const products = await fetchProducts({q: homeQ, cat: homeCat});
+  const logged = !!state.session;
+  const hero = logged ? '' : `
+    <div class="hero">
+      <h1>Seu produto parado pode valer <em>o que você precisa.</em></h1>
+      <p>Cadastre o que você não usa mais, encontre o que procura e proponha trocas diretas com pessoas de todo o Brasil.</p>
+      <form class="search-pill" data-form="search" style="max-width:480px;">
+        <input name="q" placeholder="Procure celulares, bikes, notebooks..." value="${esc(homeQ)}" aria-label="Buscar produtos">
+        <button class="search-orb" type="submit" aria-label="Buscar">${I.search}</button>
+      </form>
+      <div style="display:flex;gap:12px;">
+        <button class="btn btn-primary" data-nav="signup">Começar a trocar</button>
+        <button class="btn btn-outline" data-scroll="grid">Ver produtos</button>
+      </div>
+    </div>
+    <div class="hairline-top"></div>`;
+  const greeting = logged ? `<div style="padding:24px 0 0;"><h2 class="display-lg">Olá, ${esc((state.profile?.name||'').split(' ')[0] || 'você')} 👋</h2><p class="body-sm" style="margin:4px 0 0;">O que você está procurando hoje?</p></div>` : '';
+  return topnav({showSearch: logged, q: homeQ}) + `
+  <div class="page fade-in">
+    ${hero}${greeting}
+    <div class="cat-strip" id="grid">
+      <button class="cat-tab ${homeCat==='todos'?'active':''}" data-cat="todos"><span class="ci">✨</span>Todos</button>
+      ${CATS.map(c=>`<button class="cat-tab ${homeCat===c.k?'active':''}" data-cat="${c.k}"><span class="ci">${c.ic}</span>${c.label}</button>`).join('')}
+    </div>
+    ${homeQ ? `<div style="padding:8px 0 0;" class="body-sm">Resultados para “${esc(homeQ)}” <button class="btn-text" data-action="clear-search" style="font-size:13px;">limpar</button></div>` : ''}
+    ${products.length ? `<div class="grid">${products.map(productCard).join('')}</div>` : `
+      <div class="empty"><div class="ic">🔎</div><h4>Nada por aqui ainda</h4><p>${homeQ || homeCat!=='todos' ? 'Tente outra busca ou categoria.' : 'Seja a primeira pessoa a anunciar um produto para troca.'}</p>
+      ${logged ? `<button class="btn btn-primary" style="margin-top:18px;" data-nav="publish">Anunciar meu primeiro produto</button>` : `<button class="btn btn-primary" style="margin-top:18px;" data-nav="signup">Criar conta grátis</button>`}</div>`}
+  </div>` + (logged ? bottomNav('home') : footer());
+};
+screens.home.skeleton = () => topnav() + `<div class="page"><div style="height:40px;"></div>${skeletonGrid()}</div>`;
+
+/* ============================================================
+   AUTH — login / signup / forgot / reset / confirm
+   ============================================================ */
+function authShell(title, sub, inner){
+  return topnav() + `<div class="page fade-in"><div class="form-wrap">
+    <h1 class="display-xl" style="text-align:center;">${title}</h1>
+    <p class="body-sm" style="text-align:center;margin:6px 0 28px;">${sub}</p>
+    ${inner}
+  </div></div>`;
+}
+
+screens.login = async () => authShell('Bem-vindo de volta', 'Entre para continuar trocando.', `
+  <form data-form="login" novalidate>
+    <div class="field"><label class="label" for="f-email">E-mail</label><input class="input" id="f-email" name="email" type="email" autocomplete="email" placeholder="voce@email.com" required><div class="field-error">Informe um e-mail válido.</div></div>
+    <div class="field"><label class="label" for="f-pass">Senha</label><input class="input" id="f-pass" name="password" type="password" autocomplete="current-password" placeholder="Sua senha" required minlength="6"><div class="field-error">Informe sua senha.</div></div>
+    <div style="text-align:right;margin:-4px 0 20px;"><a class="btn-text" data-nav="forgot" style="font-size:14px;">Esqueci minha senha</a></div>
+    <button class="btn btn-primary btn-block" type="submit">Entrar</button>
+  </form>
+  <p class="body-sm" style="text-align:center;margin-top:24px;">Não tem conta? <a class="btn-text" data-nav="signup">Criar uma conta</a></p>
+`);
+
+screens.signup = async () => authShell('Crie sua conta', 'Leva menos de um minuto. Grátis.', `
+  <form data-form="signup" novalidate>
+    <div class="field"><label class="label" for="s-name">Nome completo</label><input class="input" id="s-name" name="name" autocomplete="name" placeholder="Seu nome" required minlength="3"><div class="field-error">Informe seu nome.</div></div>
+    <div class="field"><label class="label" for="s-email">E-mail</label><input class="input" id="s-email" name="email" type="email" autocomplete="email" placeholder="voce@email.com" required><div class="field-error">Informe um e-mail válido.</div></div>
+    <div class="field"><label class="label" for="s-pass">Senha</label><input class="input" id="s-pass" name="password" type="password" autocomplete="new-password" placeholder="Mínimo de 8 caracteres" required minlength="8"><div class="field-error">A senha precisa de pelo menos 8 caracteres.</div></div>
+    <div style="display:flex;gap:12px;">
+      <div class="field" style="flex:2;"><label class="label" for="s-city">Cidade</label><input class="input" id="s-city" name="city" placeholder="São Paulo" required><div class="field-error">Informe sua cidade.</div></div>
+      <div class="field" style="flex:1;"><label class="label" for="s-state">UF</label><input class="input" id="s-state" name="state" placeholder="SP" maxlength="2" style="text-transform:uppercase;" required pattern="[A-Za-z]{2}"><div class="field-error">UF inválida.</div></div>
+    </div>
+    <p class="caption-sm" style="margin:4px 0 20px;">Ao criar a conta você concorda com os Termos de Uso e a Política de Privacidade.</p>
+    <button class="btn btn-primary btn-block" type="submit">Criar minha conta</button>
+  </form>
+  <p class="body-sm" style="text-align:center;margin-top:24px;">Já tem conta? <a class="btn-text" data-nav="login">Entrar</a></p>
+`);
+
+screens.forgot = async () => authShell('Recuperar senha', 'Enviamos um link de redefinição para o seu e-mail.', `
+  <form data-form="forgot" novalidate>
+    <div class="field"><label class="label" for="r-email">E-mail cadastrado</label><input class="input" id="r-email" name="email" type="email" placeholder="voce@email.com" required><div class="field-error">Informe um e-mail válido.</div></div>
+    <button class="btn btn-primary btn-block" type="submit">Enviar link de recuperação</button>
+  </form>
+  <p class="body-sm" style="text-align:center;margin-top:24px;"><a class="btn-text" data-nav="login">Voltar para o login</a></p>
+`);
+
+screens.resetPassword = async () => authShell('Nova senha', 'Defina uma nova senha para a sua conta.', `
+  <form data-form="reset" novalidate>
+    <div class="field"><label class="label" for="n-pass">Nova senha</label><input class="input" id="n-pass" name="password" type="password" autocomplete="new-password" placeholder="Mínimo de 8 caracteres" required minlength="8"><div class="field-error">A senha precisa de pelo menos 8 caracteres.</div></div>
+    <button class="btn btn-primary btn-block" type="submit">Salvar nova senha</button>
+  </form>
+`);
+
+screens.confirmEmail = async () => authShell('Confirme seu e-mail 📬', 'Enviamos um link de confirmação para o endereço informado.', `
+  <div class="form-note" style="text-align:center;">Abra o e-mail e clique no link para ativar a conta. Depois volte aqui e entre normalmente.</div>
+  <button class="btn btn-secondary btn-block" style="margin-top:20px;" data-nav="login">Ir para o login</button>
+`);
 
 /* ============================================================
    PRODUCT DETAIL
    ============================================================ */
-function ScreenProduct(id){
-  const p = DB.products.find(x=>x.id===id) || DB.products[0];
-  const owner = DB.users.find(u=>u.id===p.ownerId);
-  const isMine = p.ownerId==='u_me';
-  const top = `<div class="topbar">
-    <button data-back class="icon-btn" style="width:36px;height:36px;">${ICON.back}</button>
-    <span style="font-weight:700;font-size:15px;">Detalhes do produto</span>
-    <button class="icon-btn" style="width:36px;height:36px;" data-action="share">${ICON.share}</button>
-  </div>`;
-
-  const body = `
-    <div class="gallery">
-      <img id="galleryImg" src="${photo(p.photos[0],700,700)}">
-      <div class="gallery-dots">${p.photos.map((_,i)=>`<span class="${i===0?'on':''}"></span>`).join('')}</div>
-    </div>
-    <div class="detail-body">
-      <div class="cat" style="margin-bottom:4px;">${catLabel(p.category)}</div>
-      <h2 style="margin:0 0 6px;font-size:22px;">${p.name}</h2>
-      <div class="loc" style="margin-bottom:10px;">📍 ${p.city} - ${p.state} · publicado em ${fmtDate(p.createdAt)}</div>
-      <p style="color:var(--text);font-size:14.5px;line-height:1.6;margin:0 0 4px;">${p.desc}</p>
-
-      <div class="info-grid">
-        <div class="it"><div class="k">Estado</div><div class="v">${p.condition}</div></div>
-        <div class="it"><div class="k">Marca</div><div class="v">${p.brand}</div></div>
-        <div class="it"><div class="k">Modelo</div><div class="v">${p.model}</div></div>
-        <div class="it"><div class="k">Ano</div><div class="v">${p.year}</div></div>
-      </div>
-
-      <a class="owner-row" data-nav="profile" data-id="${owner.id}">
-        <img src="${avatar(owner.avatarSeed)}">
-        <div style="flex:1;">
-          <div style="font-weight:700;font-size:14.5px;">${owner.name}</div>
-          <div style="font-size:12.5px;color:var(--gray);">⭐ ${owner.rating} · ${owner.trades} trocas realizadas</div>
-        </div>
-        <span style="color:var(--gray);">›</span>
-      </a>
-
-      <div class="accept-box">
-        <div style="font-weight:700;font-size:14px;margin-bottom:8px;">O que ${owner.id==='u_me'?'eu':owner.name.split(' ')[0]} aceitaria em troca</div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          ${p.wants.map(w=>`<span class="tag">${catIcon(w)} ${catLabel(w)}</span>`).join('')}
+screens.product = async function(){
+  const p = await fetchProduct(state.params.id);
+  const owner = p.profiles;
+  const isMine = owner?.id === uid();
+  const photos = [...(p.product_photos||[])].sort((a,b)=>a.position-b.position);
+  const gallery = photos.length ? `
+    <div class="gallery" data-gallery data-count="${photos.length}">
+      <img id="galleryImg" src="${esc(photoUrl(photos[0].path))}" alt="${esc(p.name)}" data-photos='${esc(JSON.stringify(photos.map(x=>photoUrl(x.path))))}'>
+      ${photos.length > 1 ? `<div class="dots">${photos.map((_,i)=>`<span class="${i===0?'on':''}"></span>`).join('')}</div>` : ''}
+    </div>` : `<div class="gallery"><div class="ph-fallback">${catIcon(p.category)}</div></div>`;
+  return topnav() + `
+  <div class="page fade-in">
+    <div style="padding:20px 0 4px;"><button class="icon-circle lg" data-back aria-label="Voltar">${I.back}</button></div>
+    <div class="detail">
+      <div>
+        ${gallery}
+        <div style="padding:20px 0 0;">
+          <span class="tag green">${catIcon(p.category)} ${catLabel(p.category)}</span>
+          <h1 class="display-lg" style="margin:12px 0 4px;">${esc(p.name)}</h1>
+          <div class="body-sm">${esc(p.city||'')}${p.state?' · '+esc(p.state):''} · publicado ${timeAgo(p.created_at)}</div>
+          ${p.description ? `<p class="body-md" style="margin:18px 0 0;">${esc(p.description)}</p>` : ''}
+          <div class="info-list" style="margin-top:20px;">
+            <div class="row"><span class="k">Estado de conservação</span><span class="v">${esc(p.condition||'—')}</span></div>
+            ${p.brand ? `<div class="row"><span class="k">Marca</span><span class="v">${esc(p.brand)}</span></div>` : ''}
+            ${p.model ? `<div class="row"><span class="k">Modelo</span><span class="v">${esc(p.model)}</span></div>` : ''}
+            ${p.year ? `<div class="row"><span class="k">Ano</span><span class="v">${esc(p.year)}</span></div>` : ''}
+          </div>
         </div>
       </div>
-    </div>
-    ${!isMine ? `<div class="sticky-cta">
-      <button class="btn btn-outline" style="flex:0 0 auto;width:52px;" data-interest="${p.id}">${ICON.heartO}</button>
-      <button class="btn btn-primary btn-block" data-interest="${p.id}">Tenho interesse</button>
-    </div>` : `<div class="sticky-cta"><button class="btn btn-outline btn-block" data-nav="myProducts">Ver em Meus Produtos</button></div>`}
-  `;
-  return body ? topbarWrap(top, body) : '';
-}
-function topbarWrap(top, body){ return `${top}<div class="fade-in">${body}</div>`; }
-function fmtDate(d){ const [y,m,day]=d.split('-'); const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']; return `${day} ${meses[+m-1]}`; }
-
-/* ============================================================
-   INTEREST / OFFER MODAL + MATCH FLOW
-   ============================================================ */
-function openOfferModal(productId){
-  const p = DB.products.find(x=>x.id===productId);
-  if(!p) return;
-  if(p.ownerId==='u_me'){ toast('Esse produto já é seu 🙂','ℹ️'); return; }
-  state.offerModal = productId;
-  state.offerSelectedId = null;
-  renderModal();
-}
-function myOwnedActiveProducts(){
-  return DB.products.filter(p=>p.ownerId==='u_me' && p.status!=='trocado');
-}
-function renderModal(){
-  const overlayExisting = document.getElementById('modalOverlay');
-  if(overlayExisting) overlayExisting.remove();
-  if(!state.offerModal) return;
-  const p = DB.products.find(x=>x.id===state.offerModal);
-  const mine = myOwnedActiveProducts();
-  const overlay = el(`<div class="modal-overlay" id="modalOverlay">
-    <div class="modal-sheet scale-pop">
-      <div class="modal-handle"></div>
-      <h3 style="margin:0 0 4px;font-size:18px;">Você está interessado em:</h3>
-      <div style="display:flex;align-items:center;gap:10px;margin:10px 0 18px;padding:10px;background:#F8FAFC;border-radius:14px;">
-        <img src="${photo(p.photos[0],80,80)}" style="width:50px;height:50px;border-radius:10px;object-fit:cover;">
-        <div style="font-weight:700;font-size:14.5px;">${p.name}</div>
-      </div>
-      <h4 style="margin:0 0 10px;font-size:14.5px;">Você pode oferecer:</h4>
-      <div id="offerList">
-        ${mine.length ? mine.map(m=>`
-          <div class="offer-option" data-offer="${m.id}">
-            <img src="${photo(m.photos[0],80,80)}">
+      <div>
+        <div class="side-card">
+          <div class="display-sm">${isMine ? 'Este anúncio é seu' : 'Interessado na troca?'}</div>
+          <div class="owner-row" data-nav="profile" data-id="${esc(owner?.id||'')}">
+            ${avatarEl(owner, 48)}
             <div style="flex:1;">
-              <div style="font-weight:700;font-size:14px;">${m.name}</div>
-              <div style="font-size:12px;color:var(--gray);">${m.condition}</div>
+              <div class="title-md">${esc(owner?.name||'')}</div>
+              <div class="caption-sm">⭐ ${Number(owner?.rating||5).toFixed(1)} · ${owner?.trades||0} trocas · ${esc(owner?.city||'')}</div>
             </div>
-            <span class="check-mark" style="font-size:16px;color:var(--blue);"></span>
-          </div>`).join('') : `<div class="empty" style="padding:20px;"><div class="ic">📦</div><h4>Você ainda não tem produtos</h4><p>Cadastre um produto para propor trocas.</p></div>`}
-      </div>
-      <div style="display:flex;gap:10px;margin-top:16px;">
-        <button class="btn btn-outline btn-block" id="cancelOffer">Cancelar</button>
-        <button class="btn btn-primary btn-block" id="sendOffer" ${mine.length?'':'disabled style="opacity:.5;"'}>Enviar proposta</button>
-      </div>
-    </div>
-  </div>`);
-  document.body.appendChild(overlay);
-
-  overlay.querySelectorAll('[data-offer]').forEach(node=>{
-    node.addEventListener('click', ()=>{
-      overlay.querySelectorAll('.offer-option').forEach(n=>n.classList.remove('selected'));
-      node.classList.add('selected');
-      node.querySelector('.check-mark').textContent = '✔️';
-      state.offerSelectedId = node.getAttribute('data-offer');
-    });
-  });
-  overlay.querySelector('#cancelOffer').addEventListener('click', ()=>{ state.offerModal=null; renderModal(); });
-  overlay.querySelector('#sendOffer')?.addEventListener('click', ()=>{
-    if(!state.offerSelectedId){ toast('Escolha um produto para oferecer','⚠️'); return; }
-    sendProposal(p.id, state.offerSelectedId);
-    state.offerModal = null; renderModal();
-  });
-  overlay.addEventListener('click', (e)=>{ if(e.target===overlay){ state.offerModal=null; renderModal(); } });
-}
-
-function sendProposal(wantedProductId, offeredProductId){
-  const wanted = DB.products.find(x=>x.id===wantedProductId);
-  const offered = DB.products.find(x=>x.id===offeredProductId);
-  toast('Proposta enviada! Aguardando resposta...', '📤');
-  offered.status = 'em_negociacao';
-  // Simula o outro usuário aceitando após um curto intervalo
-  setTimeout(()=>{
-    const matchId = 'match_'+Date.now();
-    DB.matches.unshift({id:matchId, userAId:'u_me', productAId:offered.id, userBId:wanted.ownerId, productBId:wanted.id, createdAt:new Date().toISOString().slice(0,10)});
-    DB.messages[matchId] = [];
-    DB.notifications.unshift({id:'n_'+Date.now(), type:'match', text:`Você e ${DB.users.find(u=>u.id===wanted.ownerId).name} deram match! ${offered.name} ↔ ${wanted.name}.`, time:'agora', read:false});
-    showMatchCelebration(matchId);
-  }, 1600);
-}
-
-function showMatchCelebration(matchId){
-  const m = DB.matches.find(x=>x.id===matchId);
-  const other = DB.users.find(u=>u.id===m.userBId);
-  const myP = DB.products.find(p=>p.id===m.productAId);
-  const otherP = DB.products.find(p=>p.id===m.productBId);
-  const overlay = el(`<div class="match-overlay" id="matchOverlay">
-    <div class="match-arrows">🔄</div>
-    <div class="match-title">DEU MATCH! 🎉</div>
-    <p style="opacity:.95;font-size:15px;max-width:300px;">Vocês encontraram uma possível troca.</p>
-    <div class="match-pair">
-      <div style="text-align:center;">
-        <img src="${photo(myP.photos[0],120,120)}"><div style="font-size:12px;margin-top:6px;">${myP.name}</div>
-      </div>
-      <div class="vs">↔</div>
-      <div style="text-align:center;">
-        <img src="${photo(otherP.photos[0],120,120)}"><div style="font-size:12px;margin-top:6px;">${otherP.name}</div>
+            <span style="color:var(--muted);">›</span>
+          </div>
+          <div class="caption" style="margin-bottom:10px;">Aceita em troca:</div>
+          <div class="chip-row" style="margin-bottom:22px;">
+            ${(p.wants||[]).length ? p.wants.map(w=>`<span class="tag">${catIcon(w)} ${catLabel(w)}</span>`).join('') : '<span class="tag">Aberto a propostas</span>'}
+          </div>
+          ${isMine
+            ? `<button class="btn btn-secondary btn-block" data-nav="myProducts">Gerenciar meus produtos</button>`
+            : p.status !== 'ativo'
+              ? `<div class="form-note" style="text-align:center;">Este produto não está mais disponível para troca.</div>`
+              : `<button class="btn btn-primary btn-block" data-propose="${esc(p.id)}">Propor troca</button>
+                 <p class="caption-sm" style="text-align:center;margin:12px 0 0;">Você escolhe um dos seus produtos para oferecer.</p>`}
+        </div>
       </div>
     </div>
-    <button class="btn" style="background:#fff;color:var(--blue);width:80%;max-width:300px;" id="goChat">Conversar sobre a troca</button>
-    <button class="btn" style="color:#fff;margin-top:10px;font-size:13px;opacity:.85;" id="closeMatch">Continuar explorando</button>
-  </div>`);
+  </div>` + bottomNav();
+};
+screens.product.skeleton = () => topnav() + `<div class="page"><div style="padding:20px 0;"><div class="skel" style="width:40px;height:40px;border-radius:50%;"></div></div><div class="detail"><div class="skel" style="aspect-ratio:4/3;"></div><div class="skel" style="height:280px;"></div></div></div>`;
+screens.product.after = function(){
+  const img = $('#galleryImg');
+  if(!img) return;
+  const urls = JSON.parse(img.getAttribute('data-photos'));
+  let idx = 0;
+  $('[data-gallery]').addEventListener('click', ()=>{
+    idx = (idx + 1) % urls.length;
+    img.src = urls[idx];
+    document.querySelectorAll('.gallery .dots span').forEach((d,i)=>d.classList.toggle('on', i===idx));
+  });
+};
+
+/* ============================================================
+   PROPOSE MODAL
+   ============================================================ */
+async function openProposeModal(productId){
+  if(!state.session){ nav('login'); return; }
+  let target, mine;
+  try{
+    [target, mine] = await Promise.all([fetchProduct(productId), fetchMyProducts()]);
+  }catch(e){ toast('Não foi possível carregar. Tente novamente.', true); return; }
+  const available = mine.filter(m => m.status === 'ativo');
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `<div class="modal fade-in">
+    <div class="modal-head"><h3 class="display-sm">Propor troca</h3><button class="icon-circle" data-close>${I.x}</button></div>
+    <div class="swap-pair" style="margin-bottom:20px;">
+      <span class="st">${firstPhoto(target) ? `<img src="${esc(firstPhoto(target))}">` : catIcon(target.category)}</span>
+      <div style="flex:1;min-width:0;"><div class="title-md" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(target.name)}</div><div class="caption-sm">de ${esc(target.profiles?.name||'')}</div></div>
+    </div>
+    <div class="caption" style="margin-bottom:10px;">Escolha o que você oferece:</div>
+    <div id="offerList">
+      ${available.length ? available.map(m=>`
+        <div class="offer-opt" data-offer="${esc(m.id)}">
+          <span class="st" style="width:48px;height:48px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--strong);flex-shrink:0;">${firstPhoto(m) ? `<img src="${esc(firstPhoto(m))}" style="width:100%;height:100%;object-fit:cover;">` : catIcon(m.category)}</span>
+          <div style="flex:1;min-width:0;"><div class="title-md">${esc(m.name)}</div><div class="caption-sm">${esc(m.condition||'')}</div></div>
+        </div>`).join('')
+      : `<div class="empty" style="padding:28px;"><div class="ic">📦</div><h4>Você ainda não tem produtos ativos</h4><p>Anuncie um produto para poder propor trocas.</p><button class="btn btn-primary btn-sm" style="margin-top:14px;" data-goto-publish>Anunciar produto</button></div>`}
+    </div>
+    ${available.length ? `<button class="btn btn-primary btn-block" id="sendProposal" disabled style="margin-top:16px;">Enviar proposta</button>` : ''}
+  </div>`;
   document.body.appendChild(overlay);
-  overlay.querySelector('#goChat').addEventListener('click', ()=>{ overlay.remove(); nav('chat', {id:matchId}); });
-  overlay.querySelector('#closeMatch').addEventListener('click', ()=>{ overlay.remove(); render(); });
+  let selected = null;
+  overlay.addEventListener('click', async (e)=>{
+    if(e.target === overlay || e.target.closest('[data-close]')){ overlay.remove(); return; }
+    if(e.target.closest('[data-goto-publish]')){ overlay.remove(); nav('publish'); return; }
+    const opt = e.target.closest('[data-offer]');
+    if(opt){
+      overlay.querySelectorAll('.offer-opt').forEach(o=>o.classList.remove('selected'));
+      opt.classList.add('selected');
+      selected = opt.getAttribute('data-offer');
+      overlay.querySelector('#sendProposal').disabled = false;
+      return;
+    }
+    if(e.target.closest('#sendProposal') && selected){
+      const btn = overlay.querySelector('#sendProposal');
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Enviando...';
+      const { error } = await sb.from('proposals').insert({
+        wanted_product_id: target.id,
+        offered_product_id: selected,
+        from_user_id: uid(),
+        to_user_id: target.owner_id,
+      });
+      overlay.remove();
+      if(error){
+        console.error(error);
+        toast('Não foi possível enviar a proposta. Tente novamente.', true);
+      }else{
+        toast('Proposta enviada! Você será avisado quando houver resposta. 📤');
+      }
+    }
+  });
 }
 
 /* ============================================================
-   PUBLISH PRODUCT
+   PUBLISH / EDIT PRODUCT
    ============================================================ */
-function ScreenPublish(){
-  const top = topBarApp('O que você quer trocar?', {back:false});
-  const body = `
-    <div style="padding:20px;">
-      <div class="field">
-        <label class="label">Fotos do produto (até 8)</label>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
-          <div style="aspect-ratio:1;border:1.5px dashed #CBD5E1;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#F8FAFC;color:var(--gray);font-size:11px;gap:4px;cursor:pointer;" data-action="add-photo">
-            <span style="font-size:20px;">📷</span>Adicionar
-          </div>
-          <div id="photoPreviews" style="display:contents;"></div>
+let publishPhotos = []; // File objects
+screens.publish = async function(){
+  publishPhotos = [];
+  const editing = state.screen === 'edit';
+  let p = null;
+  if(state.params.id){ p = await fetchProduct(state.params.id); }
+  const wants = new Set(p?.wants || []);
+  return topnav() + `
+  <div class="page fade-in"><div class="form-wrap" style="max-width:560px;">
+    <h1 class="display-xl">${p ? 'Editar anúncio' : 'O que você quer trocar?'}</h1>
+    <p class="body-sm" style="margin:6px 0 28px;">${p ? 'Atualize as informações do seu produto.' : 'Descreva bem o seu produto — anúncios completos recebem mais propostas.'}</p>
+    <form data-form="publish" data-editing="${p ? esc(p.id) : ''}" novalidate>
+      ${!p ? `<div class="field">
+        <label class="label">Fotos (até 8)</label>
+        <div class="photo-grid" id="photoGrid">
+          <div class="photo-add" data-action="add-photo">${I.camera}<span>Adicionar</span></div>
         </div>
-      </div>
-      <div class="field"><label class="label">Nome do produto</label><input class="input" placeholder="Ex: iPhone 12 128GB"></div>
-      <div class="field">
-        <label class="label">Categoria</label>
-        <select class="input"><option value="">Selecione</option>${CATS.map(c=>`<option value="${c.k}">${c.ic} ${c.label}</option>`).join('')}</select>
-      </div>
-      <div class="field"><label class="label">Descrição</label><textarea class="input" rows="3" placeholder="Conte os detalhes do produto..."></textarea></div>
-      <div class="field">
-        <label class="label">Estado de conservação</label>
-        <select class="input"><option>Novo</option><option selected>Seminovo</option><option>Bom estado</option><option>Usado</option></select>
+      </div>` : ''}
+      <div class="field"><label class="label" for="p-name">Nome do produto</label><input class="input" id="p-name" name="name" placeholder="Ex: iPhone 12 128GB" value="${esc(p?.name||'')}" required minlength="3"><div class="field-error">Dê um nome ao produto.</div></div>
+      <div class="field"><label class="label" for="p-cat">Categoria</label>
+        <select class="input" id="p-cat" name="category" required>
+          <option value="">Selecione</option>
+          ${CATS.map(c=>`<option value="${c.k}" ${p?.category===c.k?'selected':''}>${c.ic} ${c.label}</option>`).join('')}
+        </select><div class="field-error">Escolha uma categoria.</div></div>
+      <div class="field"><label class="label" for="p-desc">Descrição</label><textarea class="input" id="p-desc" name="description" rows="3" placeholder="Conte os detalhes: estado, acessórios, motivo da troca...">${esc(p?.description||'')}</textarea></div>
+      <div class="field"><label class="label" for="p-cond">Estado de conservação</label>
+        <select class="input" id="p-cond" name="condition">${CONDITIONS.map(c=>`<option ${p?.condition===c?'selected':(!p&&c==='Bom estado'?'selected':'')}>${c}</option>`).join('')}</select></div>
+      <div style="display:flex;gap:12px;">
+        <div class="field" style="flex:1;"><label class="label" for="p-brand">Marca</label><input class="input" id="p-brand" name="brand" placeholder="Ex: Apple" value="${esc(p?.brand||'')}"></div>
+        <div class="field" style="flex:1;"><label class="label" for="p-model">Modelo</label><input class="input" id="p-model" name="model" placeholder="Ex: iPhone 12" value="${esc(p?.model||'')}"></div>
       </div>
       <div style="display:flex;gap:12px;">
-        <div class="field" style="flex:1;"><label class="label">Marca</label><input class="input" placeholder="Ex: Apple"></div>
-        <div class="field" style="flex:1;"><label class="label">Modelo</label><input class="input" placeholder="Ex: iPhone 12"></div>
-      </div>
-      <div style="display:flex;gap:12px;">
-        <div class="field" style="flex:1;"><label class="label">Ano</label><input class="input" placeholder="2022"></div>
-        <div class="field" style="flex:1;"><label class="label">Localização</label><input class="input" placeholder="São Paulo - SP"></div>
-      </div>
-
-      <div class="field">
-        <label class="label">O que você gostaria de receber em troca?</label>
-        <textarea class="input" rows="2" placeholder="Ex: Tenho interesse em celular, videogame ou notebook."></textarea>
+        <div class="field" style="flex:1;"><label class="label" for="p-year">Ano</label><input class="input" id="p-year" name="year" placeholder="2022" value="${esc(p?.year||'')}"></div>
+        <div class="field" style="flex:1;"><label class="label" for="p-city">Cidade</label><input class="input" id="p-city" name="city" placeholder="São Paulo" value="${esc(p?.city || state.profile?.city || '')}" required><div class="field-error">Informe a cidade.</div></div>
+        <div class="field" style="flex:0 0 72px;"><label class="label" for="p-state">UF</label><input class="input" id="p-state" name="state" maxlength="2" style="text-transform:uppercase;" placeholder="SP" value="${esc(p?.state || state.profile?.state || '')}" required></div>
       </div>
       <div class="field">
-        <label class="label">Categorias de interesse</label>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          ${CATS.map(c=>`<button type="button" class="filter-chip" data-toggle-cat="${c.k}">${c.ic} ${c.label}</button>`).join('')}
+        <label class="label">O que você aceita em troca?</label>
+        <div class="chip-row" id="wantChips">
+          ${CATS.map(c=>`<button type="button" class="chip ${wants.has(c.k)?'active':''}" data-want="${c.k}">${c.ic} ${c.label}</button>`).join('')}
         </div>
       </div>
-      <button class="btn btn-primary btn-block" style="margin-top:8px;" data-action="publish-product">Publicar produto</button>
-    </div>
-  `;
-  return shell(body, {nav:'add', topbar: top});
+      <button class="btn btn-primary btn-block" type="submit" style="margin-top:8px;">${p ? 'Salvar alterações' : 'Publicar anúncio'}</button>
+      ${p ? `<button class="btn btn-text btn-block" type="button" data-nav="myProducts" style="margin-top:8px;">Cancelar</button>` : ''}
+    </form>
+  </div></div>` + bottomNav('publish');
+};
+screens.edit = screens.publish;
+
+function renderPhotoPreviews(){
+  const grid = $('#photoGrid');
+  if(!grid) return;
+  grid.querySelectorAll('.photo-prev').forEach(n=>n.remove());
+  publishPhotos.forEach((file, i)=>{
+    const div = document.createElement('div');
+    div.className = 'photo-prev';
+    div.innerHTML = `<img src="${URL.createObjectURL(file)}" alt=""><button type="button" class="rm" data-rm-photo="${i}">✕</button>`;
+    grid.appendChild(div);
+  });
 }
 
 /* ============================================================
-   MEUS PRODUTOS
+   MY PRODUCTS
    ============================================================ */
-function ScreenMyProducts(){
-  const top = topBarApp('Meus produtos');
-  const mine = DB.products.filter(p=>p.ownerId==='u_me');
-  const statusBadge = s => s==='ativo' ? `<span class="tag badge-green">🟢 Ativo</span>` : s==='em_negociacao' ? `<span class="tag badge-yellow">🟡 Em negociação</span>` : `<span class="tag badge-red">🔴 Trocado</span>`;
-  const interestsCount = 12, matchesCount = DB.matches.length, tradesCount = mine.filter(p=>p.status==='trocado').length;
-
-  const body = `
-    <div class="stats-grid" style="margin:16px 0;">
-      <div class="stat-card"><div class="n">${mine.filter(p=>p.status==='ativo').length}</div><div class="l">Produtos ativos</div></div>
-      <div class="stat-card"><div class="n">${interestsCount}</div><div class="l">Interesses recebidos</div></div>
-      <div class="stat-card"><div class="n">${matchesCount}</div><div class="l">Matches</div></div>
-      <div class="stat-card"><div class="n">${tradesCount}</div><div class="l">Trocas realizadas</div></div>
+screens.myProducts = async function(){
+  const [mine, proposals, matches] = await Promise.all([fetchMyProducts(), fetchProposals(), fetchMatches()]);
+  const pending = proposals.filter(x => x.to_user_id === uid() && x.status === 'pendente').length;
+  return topnav() + `
+  <div class="page fade-in">
+    <div class="section-head" style="padding-top:28px;">
+      <h1 class="display-xl">Meus produtos</h1>
+      <button class="btn btn-pill btn-primary" data-nav="publish">＋ Anunciar</button>
     </div>
-    <div class="section-header"><h3 style="font-size:15.5px;margin:0;">Seus produtos</h3><a class="link-btn" data-nav="publish">+ Novo</a></div>
-    <div style="padding:0 20px;">
-      ${mine.map(p=>`
-        <div class="list-row" style="align-items:flex-start;">
-          <img src="${photo(p.photos[0],90,90)}" style="width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;" data-nav="product" data-id="${p.id}">
-          <div style="flex:1;min-width:0;">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
-              <div style="font-weight:700;font-size:14px;">${p.name}</div>
-              ${statusBadge(p.status)}
-            </div>
-            <div style="font-size:12px;color:var(--gray);margin:3px 0 8px;">${catLabel(p.category)} · ${p.condition}</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-ghost btn-sm" data-nav="publish">Editar</button>
-              <button class="btn btn-outline btn-sm" data-action="pause-product" data-id="${p.id}">Pausar</button>
-              <button class="btn btn-outline btn-sm" data-action="delete-product" data-id="${p.id}">Excluir</button>
-            </div>
+    <div class="stats-row">
+      <div class="stat"><div class="n">${mine.filter(p=>p.status==='ativo').length}</div><div class="l">Anúncios ativos</div></div>
+      <div class="stat"><div class="n">${pending}</div><div class="l">Propostas pendentes</div></div>
+      <div class="stat"><div class="n">${matches.length}</div><div class="l">Matches</div></div>
+      <div class="stat"><div class="n">${mine.filter(p=>p.status==='trocado').length}</div><div class="l">Trocas concluídas</div></div>
+    </div>
+    ${mine.length ? `<div style="padding-bottom:56px;">${mine.map(p=>`
+      <div class="list-row">
+        <span class="list-thumb" data-nav="product" data-id="${esc(p.id)}" style="cursor:pointer;">${firstPhoto(p) ? `<img src="${esc(firstPhoto(p))}">` : catIcon(p.category)}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span class="title-md">${esc(p.name)}</span>
+            <span class="badge-status ${esc(p.status)}">${({ativo:'Ativo',pausado:'Pausado',em_negociacao:'Em negociação',trocado:'Trocado'})[p.status]||p.status}</span>
+          </div>
+          <div class="caption-sm" style="margin-top:3px;">${catLabel(p.category)} · ${esc(p.condition||'')} · ${timeAgo(p.created_at)}</div>
+          <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" data-nav="edit" data-id="${esc(p.id)}">Editar</button>
+            ${p.status==='ativo' ? `<button class="btn btn-outline btn-sm" data-action="set-status" data-id="${esc(p.id)}" data-status="pausado">Pausar</button>` : ''}
+            ${p.status==='pausado' ? `<button class="btn btn-outline btn-sm" data-action="set-status" data-id="${esc(p.id)}" data-status="ativo">Reativar</button>` : ''}
+            ${p.status==='em_negociacao' ? `<button class="btn btn-outline btn-sm" data-action="set-status" data-id="${esc(p.id)}" data-status="trocado">Marcar como trocado</button>` : ''}
+            <button class="btn btn-danger-text btn-sm" data-action="delete-product" data-id="${esc(p.id)}">Excluir</button>
           </div>
         </div>
-      `).join('')}
-    </div>
-  `;
-  return shell(body, {nav:'profile', topbar: top});
-}
+      </div>`).join('')}</div>`
+    : `<div class="empty"><div class="ic">📦</div><h4>Nenhum produto ainda</h4><p>Anuncie o que está parado em casa e comece a receber propostas.</p><button class="btn btn-primary" style="margin-top:18px;" data-nav="publish">Anunciar meu primeiro produto</button></div>`}
+  </div>` + bottomNav('profile');
+};
+screens.myProducts.skeleton = () => topnav() + `<div class="page"><div style="height:28px;"></div><div class="skel" style="height:36px;width:240px;"></div><div class="stats-row">${'<div class="skel" style="height:90px;"></div>'.repeat(4)}</div></div>`;
 
 /* ============================================================
-   MATCHES
+   TRADES — propostas + matches
    ============================================================ */
-function ScreenMatches(){
-  const top = topBarApp('Matches');
-  const body = `
-    <div style="padding:14px 20px;">
-      ${DB.matches.length===0 ? `<div class="empty"><div class="ic">💬</div><h4>Nenhum match ainda</h4><p>Demonstre interesse em produtos para começar a trocar.</p></div>` : DB.matches.map(matchCard).join('')}
-    </div>
-  `;
-  return shell(body, {nav:'matches', topbar: top});
-}
+let tradesTab = 'recebidas';
+screens.trades = async function(){
+  const [proposals, matches] = await Promise.all([fetchProposals(), fetchMatches()]);
+  const received = proposals.filter(x => x.to_user_id === uid());
+  const sent = proposals.filter(x => x.from_user_id === uid());
+  const statusTag = s => s==='pendente' ? '<span class="badge-status em_negociacao">Pendente</span>' : s==='aceito' ? '<span class="badge-status ativo">Aceita ✓</span>' : '<span class="badge-status pausado">Recusada</span>';
+  const thumb = prod => `<span class="st">${prod?.product_photos?.length ? `<img src="${esc(photoUrl([...prod.product_photos].sort((a,b)=>a.position-b.position)[0].path))}">` : catIcon(prod?.category)}</span>`;
 
-function matchCard(m){
-  const other = DB.users.find(u=>u.id===m.userBId);
-  const myP = DB.products.find(p=>p.id===m.productAId);
-  const otherP = DB.products.find(p=>p.id===m.productBId);
-  const lastMsg = (DB.messages[m.id]||[]).slice(-1)[0];
-  return `<div class="card" style="padding:14px;margin-bottom:12px;cursor:pointer;" data-nav="chat" data-id="${m.id}">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <img src="${avatar(other.avatarSeed)}" style="width:38px;height:38px;border-radius:50%;">
-      <div style="flex:1;">
-        <div style="font-weight:700;font-size:14px;">${other.name}</div>
-        <div style="font-size:11.5px;color:var(--gray);">📍 ${other.city} - ${other.state}</div>
+  const proposalRow = (x, incoming) => `
+    <div class="list-row" style="align-items:flex-start;">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+          ${avatarEl(incoming ? x.from_profile : x.to_profile, 32)}
+          <span class="title-md">${esc((incoming ? x.from_profile : x.to_profile)?.name||'')}</span>
+          ${statusTag(x.status)}
+          <span class="caption-sm">${timeAgo(x.created_at)}</span>
+        </div>
+        <div class="swap-pair">
+          ${thumb(x.offered)}<div style="flex:1;min-width:0;font-size:13px;">${esc(x.offered?.name||'produto removido')}</div>
+          <span class="arr">⇄</span>
+          ${thumb(x.wanted)}<div style="flex:1;min-width:0;font-size:13px;">${esc(x.wanted?.name||'produto removido')}</div>
+        </div>
+        ${incoming && x.status==='pendente' ? `
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <button class="btn btn-primary btn-sm" data-action="accept-proposal" data-id="${esc(x.id)}">Aceitar troca</button>
+            <button class="btn btn-outline btn-sm" data-action="reject-proposal" data-id="${esc(x.id)}">Recusar</button>
+          </div>` : ''}
       </div>
-      <span class="tag badge-green">Match ✓</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;background:#F8FAFC;border-radius:12px;padding:10px;">
-      <img src="${photo(myP.photos[0],60,60)}" style="width:38px;height:38px;border-radius:9px;object-fit:cover;">
-      <span style="font-size:16px;color:var(--gray);">↔</span>
-      <img src="${photo(otherP.photos[0],60,60)}" style="width:38px;height:38px;border-radius:9px;object-fit:cover;">
-      <div style="flex:1;font-size:12px;color:var(--gray);margin-left:4px;">${myP.name} <br>× ${otherP.name}</div>
-    </div>
-    ${lastMsg ? `<div style="margin-top:10px;font-size:12.5px;color:var(--gray);">💬 ${lastMsg.from==='u_me'?'Você: ':''}${lastMsg.text.slice(0,50)}${lastMsg.text.length>50?'…':''}</div>` : ''}
-  </div>`;
+    </div>`;
+
+  const matchRow = m => {
+    const iAmA = m.user_a === uid();
+    const other = iAmA ? m.ub : m.ua;
+    const myP = iAmA ? m.pa : m.pb;
+    const theirP = iAmA ? m.pb : m.pa;
+    const mThumb = pr => `<span class="st">${pr?.product_photos?.length ? `<img src="${esc(photoUrl([...pr.product_photos].sort((a,b)=>a.position-b.position)[0].path))}">` : '📦'}</span>`;
+    return `<div class="list-row" data-nav="chat" data-id="${esc(m.id)}" style="cursor:pointer;">
+      ${avatarEl(other, 48)}
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;"><span class="title-md">${esc(other?.name||'')}</span><span class="tag green" style="font-size:11px;padding:3px 9px;">Match ✓</span></div>
+        <div class="caption-sm" style="margin:4px 0 8px;">${esc(other?.city||'')}${other?.state?' · '+esc(other.state):''} · ${timeAgo(m.created_at)}</div>
+        <div class="swap-pair" style="padding:8px 10px;">${mThumb(myP)}<span class="arr">⇄</span>${mThumb(theirP)}<div style="flex:1;font-size:12.5px;color:var(--muted);min-width:0;">${esc(myP?.name||'')} × ${esc(theirP?.name||'')}</div></div>
+      </div>
+      <span style="color:var(--muted);">›</span>
+    </div>`;
+  };
+
+  const tabs = [
+    {k:'recebidas', label:`Recebidas${received.filter(r=>r.status==='pendente').length ? ` (${received.filter(r=>r.status==='pendente').length})` : ''}`},
+    {k:'enviadas', label:'Enviadas'},
+    {k:'matches', label:`Matches${matches.length ? ` (${matches.length})` : ''}`},
+  ];
+  const content = tradesTab === 'matches'
+    ? (matches.length ? matches.map(matchRow).join('') : `<div class="empty"><div class="ic">💬</div><h4>Nenhum match ainda</h4><p>Quando uma proposta for aceita, o chat aparece aqui.</p></div>`)
+    : tradesTab === 'recebidas'
+      ? (received.length ? received.map(x=>proposalRow(x,true)).join('') : `<div class="empty"><div class="ic">📥</div><h4>Nenhuma proposta recebida</h4><p>Anuncie mais produtos para receber propostas de troca.</p></div>`)
+      : (sent.length ? sent.map(x=>proposalRow(x,false)).join('') : `<div class="empty"><div class="ic">📤</div><h4>Nenhuma proposta enviada</h4><p>Explore os produtos e proponha a sua primeira troca.</p></div>`);
+
+  return topnav() + `
+  <div class="page fade-in">
+    <h1 class="display-xl" style="padding-top:28px;">Minhas trocas</h1>
+    <div class="seg-tabs">${tabs.map(t=>`<button class="seg-tab ${tradesTab===t.k?'active':''}" data-trades-tab="${t.k}">${t.label}</button>`).join('')}</div>
+    <div style="padding-bottom:56px;">${content}</div>
+  </div>` + bottomNav('trades');
+};
+screens.trades.skeleton = () => topnav() + `<div class="page"><div style="height:28px;"></div><div class="skel" style="height:36px;width:220px;"></div><div class="skel" style="height:44px;max-width:480px;margin:20px 0;border-radius:9999px;"></div>${'<div class="skel" style="height:110px;margin-bottom:14px;"></div>'.repeat(3)}</div>`;
+
+async function acceptProposal(id){
+  const { error } = await sb.from('proposals').update({ status:'aceito' }).eq('id', id).eq('status','pendente');
+  if(error){ console.error(error); toast('Não foi possível aceitar. Tente novamente.', true); return; }
+  // trigger no banco cria o match; busca pra celebrar
+  const { data: prop } = await sb.from('proposals').select('*').eq('id', id).single();
+  const { data: match } = await sb.from('matches').select(MATCH_SELECT)
+    .eq('product_a', prop.offered_product_id).eq('product_b', prop.wanted_product_id)
+    .order('created_at',{ascending:false}).limit(1).maybeSingle();
+  if(match) showMatchCelebration(match);
+  else { toast('Troca aceita! Deu match 🎉'); render(); }
+}
+
+function showMatchCelebration(m){
+  const iAmA = m.user_a === uid();
+  const myP = iAmA ? m.pa : m.pb;
+  const theirP = iAmA ? m.pb : m.pa;
+  const mp = pr => `<span class="mp">${pr?.product_photos?.length ? `<img src="${esc(photoUrl([...pr.product_photos].sort((a,b)=>a.position-b.position)[0].path))}">` : '📦'}</span>`;
+  const overlay = document.createElement('div');
+  overlay.className = 'match-overlay';
+  overlay.innerHTML = `
+    <div class="mark">${logoMark(72)}</div>
+    <h2>Deu <em>match!</em></h2>
+    <p style="opacity:.8;max-width:300px;margin:0;">Vocês encontraram uma troca possível. Combinem os detalhes pelo chat.</p>
+    <div class="match-pair">${mp(myP)}<span style="font-size:24px;">⇄</span>${mp(theirP)}</div>
+    <button class="btn btn-primary" style="width:min(300px,80%);" id="mGoChat">Conversar sobre a troca</button>
+    <button class="btn btn-text" style="color:#fff;margin-top:10px;" id="mClose">Continuar explorando</button>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#mGoChat').addEventListener('click', ()=>{ overlay.remove(); nav('chat',{id:m.id}); });
+  overlay.querySelector('#mClose').addEventListener('click', ()=>{ overlay.remove(); render(); });
 }
 
 /* ============================================================
-   CHAT
+   CHAT — realtime
    ============================================================ */
-function ScreenChat(matchId){
-  const m = DB.matches.find(x=>x.id===matchId) || DB.matches[0];
-  const other = DB.users.find(u=>u.id===m.userBId);
-  const myP = DB.products.find(p=>p.id===m.productAId);
-  const otherP = DB.products.find(p=>p.id===m.productBId);
-  const msgs = DB.messages[m.id] || [];
-
-  const top = `<div class="chat-header">
-    <button data-back class="icon-btn" style="width:34px;height:34px;">${ICON.back}</button>
-    <img src="${avatar(other.avatarSeed)}">
-    <div style="flex:1;">
-      <div style="font-weight:700;font-size:14.5px;">${other.name}</div>
-      <div style="font-size:11.5px;color:var(--gray);">📍 ${other.city} - ${other.state} · 🟢 online</div>
+screens.chat = async function(){
+  const m = await fetchMatch(state.params.id);
+  const iAmA = m.user_a === uid();
+  const other = iAmA ? m.ub : m.ua;
+  const myP = iAmA ? m.pa : m.pb;
+  const theirP = iAmA ? m.pb : m.pa;
+  const msgs = await fetchMessages(m.id);
+  return topnav() + `
+  <div class="chat-shell fade-in" data-match="${esc(m.id)}">
+    <div class="chat-top">
+      <button class="icon-circle" data-back>${I.back}</button>
+      ${avatarEl(other, 42)}
+      <div style="flex:1;min-width:0;">
+        <div class="title-md">${esc(other?.name||'')}</div>
+        <div class="caption-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Troca: ${esc(myP?.name||'')} ⇄ ${esc(theirP?.name||'')}</div>
+      </div>
     </div>
-    <button class="icon-btn" style="width:34px;height:34px;" data-action="chat-menu">⋮</button>
+    <div class="safety">${I.shield}<span>Combine a troca em local público e seguro. Nunca envie dinheiro ou dados de cartão pelo chat.</span></div>
+    <div class="chat-msgs" id="msgList">
+      ${msgs.length ? msgs.map(msgBubble).join('') : `<div class="empty" style="padding:36px;"><div class="ic">👋</div><h4>Digam oi!</h4><p>Vocês deram match. Combinem local, horário e detalhes da troca.</p></div>`}
+    </div>
+    <form class="chat-inputbar" data-form="chat">
+      <input class="input" name="text" placeholder="Escreva uma mensagem..." autocomplete="off" maxlength="1000">
+      <button class="btn btn-dark" type="submit" style="width:56px;padding:0;" aria-label="Enviar">${I.send}</button>
+    </form>
   </div>`;
-
-  const body = `
-    <div class="trade-banner">🔁 Troca: ${myP.name} ↔ ${otherP.name}</div>
-    <div class="safety-banner">${ICON.shield} Combine o local da troca em um lugar público e seguro. Nunca envie dinheiro antecipadamente.</div>
-    <div class="messages" id="msgList">
-      ${msgs.map(msg=>`
-        <div class="bubble ${msg.from==='u_me'?'me':'them'}">${msg.text}<span class="time">${msg.time}</span></div>
-      `).join('') || `<div class="empty" style="padding:30px;"><div class="ic">👋</div><h4>Diga oi!</h4><p>Vocês deram match, comece a conversa.</p></div>`}
-    </div>
-    <div style="padding:0 20px 6px;display:flex;gap:8px;">
-      <button class="btn btn-outline btn-sm" data-action="report">🚩 Denunciar</button>
-      <button class="btn btn-outline btn-sm" data-action="block">🚫 Bloquear</button>
-    </div>
-    <div class="chat-input-row">
-      <button class="icon-btn" data-action="send-photo">${ICON.camera}</button>
-      <input class="input" id="chatInput" placeholder="Digite uma mensagem...">
-      <button class="icon-btn" style="background:var(--grad);color:#fff;" id="sendMsgBtn">${ICON.send}</button>
-    </div>
-  `;
-  return `${top}<div class="fade-in" data-match="${m.id}">${body}</div>`;
+};
+screens.chat.skeleton = () => topnav() + `<div class="page"><div style="padding:20px 0;">${'<div class="skel" style="height:56px;margin-bottom:12px;"></div>'.repeat(5)}</div></div>`;
+function msgBubble(msg){
+  const me = msg.from_user === uid();
+  return `<div class="bubble ${me?'me':'them'}">${esc(msg.text)}<span class="t">${fmtTime(msg.created_at)}</span></div>`;
 }
+screens.chat.after = function(){
+  const list = $('#msgList');
+  if(list) list.scrollTop = list.scrollHeight;
+  const matchId = state.params.id;
+  activeChannel = sb.channel('chat-'+matchId)
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'messages', filter:`match_id=eq.${matchId}` }, payload => {
+      if(payload.new.from_user === uid()) return; // já renderizado localmente
+      const l = $('#msgList');
+      if(!l) return;
+      l.querySelector('.empty')?.remove();
+      l.insertAdjacentHTML('beforeend', msgBubble(payload.new));
+      l.scrollTop = l.scrollHeight;
+    })
+    .subscribe();
+};
 
 /* ============================================================
    PROFILE
    ============================================================ */
-function ScreenProfile(userId){
-  const u = DB.users.find(x=>x.id===userId) || DB.users[0];
-  const isMe = u.id==='u_me';
-  const top = topBarApp(isMe ? 'Meu perfil' : u.name, {right: isMe ? `<button class="icon-btn" style="width:34px;height:34px;" data-nav="settings">${ICON.settings}</button>` : ''});
-  const products = DB.products.filter(p=>p.ownerId===u.id && p.status==='ativo');
-
-  const body = `
-    <div style="padding:22px 20px 6px;text-align:center;">
-      <div class="avatar-ring" style="margin-bottom:10px;"><img src="${avatar(u.avatarSeed)}" style="width:84px;height:84px;border-radius:50%;border:3px solid #fff;object-fit:cover;"></div>
-      <h2 style="margin:6px 0 2px;font-size:19px;">${u.name}</h2>
-      <div style="font-size:13px;color:var(--gray);">📍 ${u.city} - ${u.state} · desde ${fmtDate(u.joined)}</div>
-      <div style="display:flex;justify-content:center;gap:22px;margin:16px 0 4px;">
-        <div><div style="font-weight:800;font-size:18px;">⭐ ${u.rating}</div><div style="font-size:11.5px;color:var(--gray);">avaliação</div></div>
-        <div><div style="font-weight:800;font-size:18px;">${u.trades}</div><div style="font-size:11.5px;color:var(--gray);">trocas</div></div>
-        <div><div style="font-weight:800;font-size:18px;">${products.length}</div><div style="font-size:11.5px;color:var(--gray);">produtos</div></div>
+screens.profile = async function(){
+  const id = state.params.id || uid();
+  if(!id){ nav('login'); return topnav(); }
+  const isMe = id === uid();
+  const [prof, products] = await Promise.all([fetchProfile(id), fetchUserProducts(id)]);
+  return topnav() + `
+  <div class="page fade-in">
+    <div class="profile-head">
+      ${avatarEl(prof, 96)}
+      <h1 class="display-lg" style="margin-top:8px;">${esc(prof.name)}</h1>
+      <div class="body-sm">${esc(prof.city||'')}${prof.state?' · '+esc(prof.state):''} · membro desde ${new Date(prof.created_at).toLocaleDateString('pt-BR',{month:'short',year:'numeric'})}</div>
+      <div class="rating-hero">
+        <div class="cell"><div class="big">${Number(prof.rating||5).toFixed(1)}</div><div class="cl">avaliação</div></div>
+        <div class="sep"></div>
+        <div class="cell"><div class="big">${prof.trades||0}</div><div class="cl">trocas</div></div>
+        <div class="sep"></div>
+        <div class="cell"><div class="big">${products.length}</div><div class="cl">anúncios</div></div>
       </div>
-      ${isMe ? `<button class="btn btn-outline btn-sm" data-nav="myProducts" style="margin-top:6px;">Gerenciar meus produtos</button>` : `<button class="btn btn-primary btn-sm" style="margin-top:6px;">Ver conversa</button>`}
+      ${isMe ? `<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+        <button class="btn btn-secondary btn-sm" data-nav="editProfile">Editar perfil</button>
+        <button class="btn btn-outline btn-sm" data-nav="myProducts">Meus produtos</button>
+        <button class="btn btn-danger-text btn-sm" data-action="logout">Sair da conta</button>
+      </div>` : ''}
     </div>
-    <div class="section-header"><h3 style="font-size:15.5px;margin:0;">Produtos de ${u.name.split(' ')[0]}</h3></div>
-    ${productGrid(products)}
-  `;
-  return shell(body, {nav: isMe ? 'profile' : null, topbar: top});
-}
+    <div class="section hairline-top">
+      <h2 class="display-sm">Anúncios de ${esc((prof.name||'').split(' ')[0])}</h2>
+    </div>
+    ${products.length ? `<div class="grid">${products.map(productCard).join('')}</div>` : `<div class="empty"><div class="ic">📦</div><h4>Nenhum anúncio ativo</h4><p>${isMe ? 'Anuncie o que está parado em casa.' : 'Esta pessoa não tem anúncios ativos no momento.'}</p></div>`}
+  </div>` + bottomNav(isMe ? 'profile' : null);
+};
+screens.profile.skeleton = () => topnav() + `<div class="page"><div style="display:flex;flex-direction:column;align-items:center;padding:36px 0;gap:12px;"><div class="skel" style="width:96px;height:96px;border-radius:50%;"></div><div class="skel" style="width:180px;height:24px;"></div></div>${skeletonGrid(4)}</div>`;
+
+screens.editProfile = async function(){
+  const prof = state.profile || await fetchProfile(uid());
+  return topnav() + `
+  <div class="page fade-in"><div class="form-wrap">
+    <h1 class="display-xl">Editar perfil</h1>
+    <p class="body-sm" style="margin:6px 0 28px;">Essas informações aparecem nos seus anúncios.</p>
+    <form data-form="editProfile" novalidate>
+      <div class="field" style="text-align:center;">
+        <button type="button" data-action="change-avatar" style="border-radius:50%;padding:0;position:relative;">${avatarEl(prof, 88)}
+          <span class="icon-circle" style="position:absolute;bottom:0;right:0;background:var(--ink);color:#fff;">${I.camera}</span>
+        </button>
+      </div>
+      <div class="field"><label class="label" for="e-name">Nome</label><input class="input" id="e-name" name="name" value="${esc(prof.name||'')}" required minlength="3"><div class="field-error">Informe seu nome.</div></div>
+      <div style="display:flex;gap:12px;">
+        <div class="field" style="flex:2;"><label class="label" for="e-city">Cidade</label><input class="input" id="e-city" name="city" value="${esc(prof.city||'')}"></div>
+        <div class="field" style="flex:1;"><label class="label" for="e-state">UF</label><input class="input" id="e-state" name="state" maxlength="2" style="text-transform:uppercase;" value="${esc(prof.state||'')}"></div>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">Salvar</button>
+    </form>
+  </div></div>` + bottomNav('profile');
+};
 
 /* ============================================================
    NOTIFICATIONS
    ============================================================ */
-function ScreenNotifications(){
-  const top = topBarApp('Notificações');
-  const iconFor = t => ({match:'🔄', interest:'❤️', message:'💬', review:'⭐', proposal:'🔁'}[t] || '🔔');
-  const body = `
-    <div style="padding:14px 20px;">
-      ${DB.notifications.map(n=>`
-        <div class="list-row" style="opacity:${n.read?0.7:1};">
-          <div style="width:40px;height:40px;border-radius:50%;background:#EEF2FF;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">${iconFor(n.type)}</div>
-          <div style="flex:1;">
-            <div style="font-size:13.5px;line-height:1.4;">${n.text}</div>
-            <div style="font-size:11.5px;color:var(--gray);margin-top:3px;">${n.time}</div>
-          </div>
-          ${!n.read ? `<div style="width:8px;height:8px;background:var(--blue);border-radius:50%;flex-shrink:0;"></div>` : ''}
+screens.notifications = async function(){
+  const items = await fetchNotifications();
+  // marca como lidas em background
+  sb.from('notifications').update({read:true}).eq('user_id', uid()).eq('read', false).then(()=>{ state.unread = 0; });
+  const iconFor = t => ({match:'🤝', proposal:'🔁', message:'💬', review:'⭐'})[t] || '🔔';
+  return topnav() + `
+  <div class="page fade-in">
+    <h1 class="display-xl" style="padding:28px 0 12px;">Notificações</h1>
+    ${items.length ? `<div style="padding-bottom:56px;">${items.map(n=>`
+      <div class="list-row" style="opacity:${n.read?.65:1};">
+        <span class="list-thumb" style="width:44px;height:44px;border-radius:50%;font-size:19px;background:var(--soft);">${iconFor(n.type)}</span>
+        <div style="flex:1;">
+          <div style="font-size:14.5px;line-height:1.4;">${esc(n.text)}</div>
+          <div class="caption-sm" style="margin-top:2px;">${timeAgo(n.created_at)}</div>
         </div>
-      `).join('')}
-    </div>
-  `;
-  return shell(body, {nav:null, topbar: top});
-}
+        ${!n.read ? '<span style="width:9px;height:9px;background:var(--green);border-radius:50%;flex-shrink:0;"></span>' : ''}
+      </div>`).join('')}</div>`
+    : `<div class="empty"><div class="ic">🔔</div><h4>Nada por enquanto</h4><p>Avisaremos quando você receber propostas, matches e mensagens.</p></div>`}
+  </div>` + bottomNav('notifications');
+};
+screens.notifications.skeleton = () => topnav() + `<div class="page"><div style="height:28px;"></div><div class="skel" style="height:34px;width:200px;margin-bottom:20px;"></div>${'<div class="skel" style="height:64px;margin-bottom:12px;"></div>'.repeat(5)}</div>`;
 
 /* ============================================================
-   SETTINGS
+   FORM SUBMIT HANDLERS
    ============================================================ */
-function ScreenSettings(){
-  const top = topBarApp('Configurações', {back:true});
-  const rows = [
-    {l:'Notificações push', on:true}, {l:'Notificações por e-mail', on:true},
-    {l:'Perfil público', on:true}, {l:'Mostrar localização exata', on:false},
-  ];
-  const body = `
-    <div style="padding:18px 20px;">
-      <div class="section-title" style="font-size:15px;">Conta</div>
-      <div class="list-row"><div style="flex:1;font-size:14px;">Editar perfil</div><span>›</span></div>
-      <div class="list-row"><div style="flex:1;font-size:14px;">Alterar senha</div><span>›</span></div>
-      <div class="list-row"><div style="flex:1;font-size:14px;">Endereço e localização</div><span>›</span></div>
-      <div class="section-title" style="font-size:15px;margin-top:18px;">Preferências</div>
-      ${rows.map((r,i)=>`
-        <div class="list-row"><div style="flex:1;font-size:14px;">${r.l}</div><div class="switch ${r.on?'on':''}" data-switch><div class="dot"></div></div></div>
-      `).join('')}
-      <div class="section-title" style="font-size:15px;margin-top:18px;">Segurança</div>
-      <div class="list-row"><div style="flex:1;font-size:14px;">Usuários bloqueados</div><span>›</span></div>
-      <div class="list-row"><div style="flex:1;font-size:14px;">Central de ajuda</div><span>›</span></div>
-      <button class="btn btn-outline btn-block" style="margin-top:10px;color:#DC2626;" data-action="logout">Sair da conta</button>
-    </div>
-  `;
-  return shell(body, {nav:null, topbar: top});
+function formValues(form){
+  const o = {};
+  new FormData(form).forEach((v,k)=>o[k]=String(v).trim());
+  return o;
+}
+function setLoading(form, loading, label='Aguarde...'){
+  const btn = form.querySelector('button[type=submit]');
+  if(!btn) return;
+  if(loading){ btn.dataset.orig = btn.innerHTML; btn.disabled = true; btn.innerHTML = `<span class="spinner"></span> ${label}`; }
+  else { btn.disabled = false; btn.innerHTML = btn.dataset.orig || btn.innerHTML; }
+}
+function validate(form){
+  let ok = true;
+  form.querySelectorAll('.field').forEach(f=>{
+    const inp = f.querySelector('input,select,textarea');
+    if(!inp) return;
+    const valid = inp.checkValidity();
+    f.classList.toggle('has-error', !valid);
+    inp.classList.toggle('error', !valid);
+    if(!valid) ok = false;
+  });
+  return ok;
 }
 
-/* ============================================================
-   ADMIN
-   ============================================================ */
-function ScreenAdmin(){
-  const metrics = [
-    {l:'Usuários cadastrados', v:'8.412', pct:82}, {l:'Usuários ativos', v:'3.190', pct:64},
-    {l:'Produtos publicados', v:'15.207', pct:91}, {l:'Matches realizados', v:'2.845', pct:57},
-    {l:'Trocas concluídas', v:'1.902', pct:48}, {l:'Denúncias', v:'34', pct:12},
-  ];
-  const body = `
-    <div style="padding:18px 20px 60px;">
-      <div class="section-header" style="padding:0 0 12px;"><h2 class="section-title" style="margin:0;">Painel administrativo</h2></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        ${metrics.map(m=>`
-          <div class="admin-metric">
-            <div style="font-size:11.5px;color:var(--gray);font-weight:600;margin-bottom:6px;">${m.l}</div>
-            <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:20px;margin-bottom:8px;">${m.v}</div>
-            <div class="bar"><div style="width:${m.pct}%;"></div></div>
-          </div>
-        `).join('')}
-      </div>
+const AUTH_ERRORS = {
+  'Invalid login credentials':'E-mail ou senha incorretos.',
+  'Email not confirmed':'Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.',
+  'User already registered':'Este e-mail já tem conta. Faça login.',
+};
+const authMsg = e => AUTH_ERRORS[e?.message] || e?.message || 'Algo deu errado. Tente novamente.';
 
-      <div class="section-header" style="padding:22px 0 10px;"><h3 style="font-size:15px;margin:0;">Gerenciar</h3></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        ${['Usuários','Produtos','Categorias','Denúncias','Avaliações','Configurações'].map(x=>`
-          <button class="btn btn-outline" style="justify-content:flex-start;">${x}</button>
-        `).join('')}
-      </div>
+async function handleForm(form){
+  const kind = form.getAttribute('data-form');
+  if(kind === 'search'){
+    homeQ = form.querySelector('[name=q]').value.trim();
+    nav('home');
+    return;
+  }
+  if(!validate(form)) return;
+  const v = formValues(form);
 
-      <div class="section-header" style="padding:22px 0 10px;"><h3 style="font-size:15px;margin:0;">Denúncias recentes</h3></div>
-      <div class="list-row"><div style="flex:1;"><div style="font-weight:700;font-size:13.5px;">Anúncio suspeito — "iPhone 15 novo lacrado"</div><div style="font-size:11.5px;color:var(--gray);">Denunciado por 3 usuários · há 4h</div></div><span class="tag badge-red">Pendente</span></div>
-      <div class="list-row"><div style="flex:1;"><div style="font-weight:700;font-size:13.5px;">Usuário com mensagens ofensivas</div><div style="font-size:11.5px;color:var(--gray);">Denunciado por 1 usuário · há 1d</div></div><span class="tag badge-yellow">Em análise</span></div>
-
-      <button class="btn btn-outline btn-block" style="margin-top:20px;" data-nav="feed">← Voltar ao app</button>
-    </div>
-  `;
-  return topBarApp('Admin · Troca Já') + body;
-}
-
-/* ============================================================
-   EVENT HANDLERS
-   ============================================================ */
-function attachHandlers(){
-  const app = $('#app');
-
-  app.querySelectorAll('[data-nav]').forEach(node=>{
-    node.addEventListener('click', (e)=>{
-      const screen = node.getAttribute('data-nav');
-      const id = node.getAttribute('data-id');
-      if(!AUTH_SCREENS.includes(screen) || state.loggedIn || screen==='landing' || screen==='login' || screen==='signup' || screen==='forgot'){
-        nav(screen, id ? {id} : {});
-      } else {
-        nav('login');
-      }
-    });
-  });
-
-  app.querySelectorAll('[data-back]').forEach(node=>{
-    node.addEventListener('click', ()=>{
-      if(state.screen==='chat') nav('matches');
-      else if(state.screen==='product') nav('feed');
-      else if(state.screen==='settings') nav('profile');
-      else nav(state.loggedIn ? 'feed' : 'landing');
-    });
-  });
-
-  app.querySelectorAll('[data-interest]').forEach(node=>{
-    node.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      if(!state.loggedIn){ nav('login'); return; }
-      const id = node.getAttribute('data-interest');
-      openOfferModal(id);
-    });
-  });
-
-  app.querySelectorAll('[data-filter]').forEach(node=>{
-    node.addEventListener('click', ()=>{ feedFilter = node.getAttribute('data-filter'); render(); });
-  });
-
-  const searchInput = $('#searchInput');
-  if(searchInput){
-    searchInput.addEventListener('input', ()=>{ state.params.q = searchInput.value; });
-    searchInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') render(); });
+  if(kind === 'login'){
+    setLoading(form, true, 'Entrando...');
+    const { error } = await sb.auth.signInWithPassword({ email: v.email, password: v.password });
+    if(error){ setLoading(form, false); toast(authMsg(error), true); return; }
+    await loadOwnProfile();
+    toast(`Bem-vindo de volta! 👋`);
+    nav('home');
   }
 
-  const loginForm = app.querySelector('[data-form="login"]');
-  if(loginForm) loginForm.addEventListener('submit', (e)=>{ e.preventDefault(); doLogin(); });
-  const signupForm = app.querySelector('[data-form="signup"]');
-  if(signupForm) signupForm.addEventListener('submit', (e)=>{ e.preventDefault(); doLogin('Conta criada com sucesso! Bem-vindo(a) 🎉'); });
-  const forgotForm = app.querySelector('[data-form="forgot"]');
-  if(forgotForm) forgotForm.addEventListener('submit', (e)=>{ e.preventDefault(); toast('Link de recuperação enviado para o seu e-mail.','📩'); nav('login'); });
+  if(kind === 'signup'){
+    setLoading(form, true, 'Criando conta...');
+    const { data, error } = await sb.auth.signUp({
+      email: v.email, password: v.password,
+      options: { data: { name: v.name, city: v.city, state: v.state.toUpperCase() } },
+    });
+    if(error){ setLoading(form, false); toast(authMsg(error), true); return; }
+    if(!data.session){ nav('confirmEmail'); return; }
+    await loadOwnProfile();
+    toast('Conta criada! Bem-vindo(a) 🎉');
+    nav('home');
+  }
 
-  const googleBtn = app.querySelector('[data-action="google-login"]');
-  if(googleBtn) googleBtn.addEventListener('click', ()=>doLogin());
+  if(kind === 'forgot'){
+    setLoading(form, true, 'Enviando...');
+    const { error } = await sb.auth.resetPasswordForEmail(v.email, { redirectTo: window.location.origin });
+    setLoading(form, false);
+    if(error){ toast(authMsg(error), true); return; }
+    toast('Se o e-mail existir, enviamos o link de recuperação. 📩');
+    nav('login');
+  }
 
-  const sendMsgBtn = app.querySelector('#sendMsgBtn');
-  if(sendMsgBtn){
-    const doSend = ()=>{
-      const input = $('#chatInput');
-      const text = input.value.trim();
-      if(!text) return;
-      const matchId = app.querySelector('[data-match]').getAttribute('data-match');
-      const now = new Date(); const time = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
-      DB.messages[matchId] = DB.messages[matchId] || [];
-      DB.messages[matchId].push({from:'u_me', text, time});
-      input.value='';
-      render();
-      setTimeout(()=>{ $('#msgList')?.scrollIntoView({block:'end'}); }, 50);
-      // resposta automática simulada
-      setTimeout(()=>{
-        const m = DB.matches.find(x=>x.id===matchId);
-        const other = DB.users.find(u=>u.id===m.userBId);
-        const replies = ['Combinado! 👍','Show, pode ser sim.','Perfeito, te aviso quando estiver por aí.','Boa! Vamos marcar então.'];
-        DB.messages[matchId].push({from: m.userBId, text: replies[Math.floor(Math.random()*replies.length)], time: time});
-        if(state.screen==='chat') render();
-      }, 1400);
+  if(kind === 'reset'){
+    setLoading(form, true, 'Salvando...');
+    const { error } = await sb.auth.updateUser({ password: v.password });
+    setLoading(form, false);
+    if(error){ toast(authMsg(error), true); return; }
+    toast('Senha atualizada com sucesso!');
+    nav('home');
+  }
+
+  if(kind === 'publish'){
+    const editingId = form.getAttribute('data-editing');
+    setLoading(form, true, editingId ? 'Salvando...' : 'Publicando...');
+    const record = {
+      name: v.name, category: v.category, description: v.description,
+      condition: v.condition, brand: v.brand, model: v.model, year: v.year,
+      city: v.city, state: v.state.toUpperCase(),
+      wants: [...form.querySelectorAll('[data-want].active')].map(c=>c.getAttribute('data-want')),
     };
-    sendMsgBtn.addEventListener('click', doSend);
-    $('#chatInput')?.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doSend(); });
+    try{
+      if(editingId){
+        const { error } = await sb.from('products').update(record).eq('id', editingId);
+        if(error) throw error;
+        toast('Anúncio atualizado!');
+      }else{
+        record.owner_id = uid();
+        const { data: prod, error } = await sb.from('products').insert(record).select('id').single();
+        if(error) throw error;
+        if(publishPhotos.length){
+          const paths = await uploadPhotos(publishPhotos.slice(0,8));
+          const rows = paths.map((path,i)=>({ product_id: prod.id, path, position: i }));
+          const { error: pe } = await sb.from('product_photos').insert(rows);
+          if(pe) throw pe;
+        }
+        toast('Anúncio publicado com sucesso! 🎉');
+      }
+      publishPhotos = [];
+      nav('myProducts');
+    }catch(e){
+      console.error(e);
+      setLoading(form, false);
+      toast('Não foi possível salvar o anúncio: ' + (e.message||''), true);
+    }
   }
 
-  app.querySelectorAll('[data-action="pause-product"]').forEach(n=>n.addEventListener('click', ()=>toast('Produto pausado.','⏸️')));
-  app.querySelectorAll('[data-action="delete-product"]').forEach(n=>n.addEventListener('click', ()=>toast('Produto excluído.','🗑️')));
-  app.querySelectorAll('[data-action="publish-product"]').forEach(n=>n.addEventListener('click', ()=>{ toast('Produto publicado com sucesso!','🎉'); nav('myProducts'); }));
-  app.querySelectorAll('[data-toggle-cat]').forEach(n=>n.addEventListener('click', ()=>n.classList.toggle('active')));
-  app.querySelectorAll('[data-action="share"]').forEach(n=>n.addEventListener('click', ()=>toast('Link copiado para a área de transferência.','🔗')));
-  app.querySelectorAll('[data-action="report"]').forEach(n=>n.addEventListener('click', ()=>toast('Denúncia enviada. Nossa equipe vai analisar.','🚩')));
-  app.querySelectorAll('[data-action="block"]').forEach(n=>n.addEventListener('click', ()=>toast('Usuário bloqueado.','🚫')));
-  app.querySelectorAll('[data-action="logout"]').forEach(n=>n.addEventListener('click', ()=>{ state.loggedIn=false; nav('landing'); }));
-  app.querySelectorAll('[data-switch]').forEach(n=>n.addEventListener('click', ()=>n.classList.toggle('on')));
-  app.querySelectorAll('[data-action="add-photo"]').forEach(n=>n.addEventListener('click', ()=>toast('Foto adicionada ao produto.','📷')));
+  if(kind === 'editProfile'){
+    setLoading(form, true, 'Salvando...');
+    const { error } = await sb.from('profiles').update({ name: v.name, city: v.city, state: v.state.toUpperCase() }).eq('id', uid());
+    setLoading(form, false);
+    if(error){ toast('Não foi possível salvar.', true); return; }
+    await loadOwnProfile();
+    toast('Perfil atualizado!');
+    nav('profile');
+  }
+
+  if(kind === 'chat'){
+    const input = form.querySelector('[name=text]');
+    const text = input.value.trim();
+    if(!text) return;
+    input.value = '';
+    const matchId = document.querySelector('[data-match]').getAttribute('data-match');
+    // render otimista
+    const l = $('#msgList');
+    l.querySelector('.empty')?.remove();
+    l.insertAdjacentHTML('beforeend', `<div class="bubble me">${esc(text)}<span class="t">${fmtTime(new Date().toISOString())}</span></div>`);
+    l.scrollTop = l.scrollHeight;
+    const { error } = await sb.from('messages').insert({ match_id: matchId, from_user: uid(), text });
+    if(error){
+      console.error(error);
+      toast('Mensagem não enviada. Tente novamente.', true);
+      l.lastElementChild?.remove();
+      input.value = text;
+    }
+  }
 }
 
-function doLogin(msg){
-  state.loggedIn = true;
-  toast(msg || 'Login realizado com sucesso!', '👋');
-  nav('feed');
-}
+/* ============================================================
+   GLOBAL EVENT DELEGATION
+   ============================================================ */
+document.addEventListener('click', async (e)=>{
+  const navEl = e.target.closest('[data-nav]');
+  if(navEl){
+    e.preventDefault();
+    const screen = navEl.getAttribute('data-nav');
+    const id = navEl.getAttribute('data-id');
+    if(AUTH_SCREENS.includes(screen) && !state.session){ nav('login'); return; }
+    nav(screen, id ? {id} : {});
+    return;
+  }
+  if(e.target.closest('[data-back]')){ history.length > 1 ? nav(state.session ? 'home':'home') : nav('home'); return; }
+  const scrollEl = e.target.closest('[data-scroll]');
+  if(scrollEl){ document.getElementById(scrollEl.getAttribute('data-scroll'))?.scrollIntoView({behavior:'smooth'}); return; }
+
+  const catEl = e.target.closest('[data-cat]');
+  if(catEl){ homeCat = catEl.getAttribute('data-cat'); render(); return; }
+
+  const propEl = e.target.closest('[data-propose]');
+  if(propEl){ openProposeModal(propEl.getAttribute('data-propose')); return; }
+
+  const tabEl = e.target.closest('[data-trades-tab]');
+  if(tabEl){ tradesTab = tabEl.getAttribute('data-trades-tab'); render(); return; }
+
+  const wantEl = e.target.closest('[data-want]');
+  if(wantEl){ wantEl.classList.toggle('active'); return; }
+
+  const rmEl = e.target.closest('[data-rm-photo]');
+  if(rmEl){ publishPhotos.splice(Number(rmEl.getAttribute('data-rm-photo')),1); renderPhotoPreviews(); return; }
+
+  const actEl = e.target.closest('[data-action]');
+  if(!actEl) return;
+  const action = actEl.getAttribute('data-action');
+  const id = actEl.getAttribute('data-id');
+
+  if(action === 'retry') render();
+  if(action === 'clear-search'){ homeQ=''; nav('home'); }
+  if(action === 'logout') doLogout();
+  if(action === 'add-photo'){
+    if(publishPhotos.length >= 8){ toast('Máximo de 8 fotos.', true); return; }
+    $('#photoInput').click();
+  }
+  if(action === 'change-avatar'){ $('#photoInput').setAttribute('data-mode','avatar'); $('#photoInput').click(); }
+  if(action === 'set-status'){
+    const status = actEl.getAttribute('data-status');
+    actEl.disabled = true;
+    const { error } = await sb.from('products').update({ status }).eq('id', id);
+    if(error){ toast('Não foi possível atualizar.', true); actEl.disabled = false; }
+    else { toast(status==='pausado'?'Anúncio pausado.':status==='ativo'?'Anúncio reativado.':'Troca concluída! 🎉'); render(); }
+  }
+  if(action === 'delete-product'){
+    if(!confirm('Excluir este anúncio? Essa ação não pode ser desfeita.')) return;
+    const { error } = await sb.from('products').delete().eq('id', id);
+    if(error){ console.error(error); toast('Não foi possível excluir. Produtos em negociação não podem ser removidos.', true); }
+    else { toast('Anúncio excluído.'); render(); }
+  }
+  if(action === 'accept-proposal'){ actEl.disabled = true; await acceptProposal(id); }
+  if(action === 'reject-proposal'){
+    actEl.disabled = true;
+    const { error } = await sb.from('proposals').update({ status:'recusado' }).eq('id', id).eq('status','pendente');
+    if(error){ toast('Não foi possível recusar.', true); actEl.disabled = false; }
+    else { toast('Proposta recusada.'); render(); }
+  }
+});
+
+document.addEventListener('submit', (e)=>{
+  const form = e.target.closest('[data-form]');
+  if(form){ e.preventDefault(); handleForm(form); }
+});
+
+$('#photoInput').addEventListener('change', async (e)=>{
+  const files = [...e.target.files];
+  const mode = e.target.getAttribute('data-mode');
+  e.target.value = '';
+  e.target.removeAttribute('data-mode');
+  if(!files.length) return;
+  if(mode === 'avatar'){
+    try{
+      const [path] = await uploadPhotos([files[0]]);
+      const { error } = await sb.from('profiles').update({ avatar_url: path }).eq('id', uid());
+      if(error) throw error;
+      await loadOwnProfile();
+      toast('Foto de perfil atualizada!');
+      render();
+    }catch(err){ console.error(err); toast('Não foi possível enviar a foto.', true); }
+    return;
+  }
+  const room = 8 - publishPhotos.length;
+  publishPhotos.push(...files.slice(0, room));
+  if(files.length > room) toast('Máximo de 8 fotos.', true);
+  renderPhotoPreviews();
+});
 
 /* ---------- Boot ---------- */
-render();
+(async function boot(){
+  $('#app').innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;">${logoMark(56)}</div>`;
+  try{ await initAuth(); }catch(e){ console.error('auth init', e); }
+  render();
+})();
 </script>
 </body>
 </html>
